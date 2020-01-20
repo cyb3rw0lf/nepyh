@@ -1,0 +1,3 @@
+PyQt5
+Jinja2
+PyYAML
