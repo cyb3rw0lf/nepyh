@@ -2,18 +2,18 @@
 
 ## NEPYH-BIN (Windows only)
 Download the binary file:
-https://github.com/cyb3rw0lf/nepyh/bin
+https://github.com/cyb3rw0lf/nepyh-bin/nepyh-bin.exe
 
-## NEPYH-GUI
+## NEPYH
 ### Installation
 Download the repo
 ```
-git clone https://github.com/cyb3rw0lf/nepyh/gui nepyh-gui
+git clone https://github.com/cyb3rw0lf/nepyh
 ```
 
 Enter the downloaded folder
 ```
-cd nepyh-gui
+cd nepyh
 ```
 
 Install dependencies
@@ -24,7 +24,7 @@ pip3 install -r requirements.txt
 ### Upgrade
 Enter the downloaded folder
 ```
-cd nepyh-gui
+cd nepyh
 ```
 
 Pull the repo
@@ -33,14 +33,14 @@ git pull
 ```
 
 ### Run Software
-python3 nepyh-gui.py
+python3 nepyh.py
 
 
 ## NEPYH-CLI
 ### Installation
 Download the repo
 ```
-git clone https://github.com/cyb3rw0lf/nepyh/cli nepyh-cli
+git clone https://github.com/cyb3rw0lf/nepyh-cli
 ```
 
 Enter the downloaded folder
