@@ -32,11 +32,11 @@ git pull
 python3 nepyh.py
 
 
-## NEPYH-CLI
-https://github.com/cyb3rw0lf/nepyh-cli
-
-
 ## NEPYH-BIN (Windows only)
 Download the binary file:
 https://github.com/cyb3rw0lf/nepyh-bin/nepyh-bin.exe
+
+
+## NEPYH-CLI
+Command line version available here: https://github.com/cyb3rw0lf/nepyh-cli
 
