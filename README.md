@@ -28,8 +28,10 @@ Pull the repo
 git pull
 ```
 
-### Run Software
-python3 nepyh.py
+### Usage
+* Create a database file in YAML format (validate on http://www.yamllint.com/)
+* Create a template file in Jinja2 format
+* Run the software ``` python3 nepyh.py ```
 
 
 ## NEPYH-BIN (Windows only)
