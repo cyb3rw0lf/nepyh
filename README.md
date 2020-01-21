@@ -35,6 +35,7 @@ git pull
 
 ### YAML restrictions
 The YAML file must start with a list of dictionaries.
+
 The first dictionary will be used as name for the output files.
 
 example:
