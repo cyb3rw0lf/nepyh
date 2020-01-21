@@ -1,5 +1,8 @@
 # N.E.Py.H. - Network Engineer Python Helper
 
+NEPYH is a python application with GUI which takes as input a database (in YAML format) and a template (in Jinja2 format) and merge them in order to generate configuration for network devices.
+It can also be used for other things such as generate SecureCRT sessions files
+
 ## NEPYH
 ### Installation
 Download the repo
