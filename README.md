@@ -33,6 +33,18 @@ git pull
 * Create a template file in Jinja2 format
 * Run the software ``` python3 nepyh.py ```
 
+### YAML restrictions
+The YAML file must start with a list of dictionaries.
+The first dictionary will be used as name for the output files.
+
+example:
+```YAML
+---
+- hostname: R1
+  loopback: 1.1.1.1
+- hostname: R2
+  loopback: 2.2.2.2
+```
 
 ## NEPYH-BIN (Windows only)
 Download the binary file:
