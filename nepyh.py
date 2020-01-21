@@ -22,7 +22,7 @@ import time
 from PyQt5 import QtCore, QtWidgets, QtGui # import PyQt5 for GUI, to install "pip3 install PyQt5"
 import types
 import shutil
-from jinja2 import Environment, FileSystemLoader #Import necessary functions from Jinja2 module
+import jinja2
 import yaml
 from pathlib import Path
 
@@ -39,6 +39,7 @@ __status__ = "Production"
 __usage__ = "Chose a Database file in YAML format and a Template file in Jinja2 format. It's mandatory that YAML file start with a list."
 
 defFolder = time.strftime("%Y%m%d-%H%M%S")
+script_path = Path(__file__).resolve().parent
 
 # GUI
 class MainGUI(QtWidgets.QMainWindow):
@@ -150,7 +151,7 @@ class MainGUI(QtWidgets.QMainWindow):
         self.resize(600,10)
         self.center()
         self.setWindowTitle('NEPyH - Network Engineer Python Helper v' + __version__)
-        self.setWindowIcon(QtGui.QIcon('nepyh.png'))
+        self.setWindowIcon(QtGui.QIcon(str(script_path / 'nepyh.png')))
         self.show()
 
     def center(self): # Move the main window to the center of the screen
@@ -159,14 +160,15 @@ class MainGUI(QtWidgets.QMainWindow):
         qr.moveCenter(cp)
         self.move(qr.topLeft())
 
-    def closeEvent(self, event): # Ask for exit confirmation when click on 'x' button 
-        reply = QtWidgets.QMessageBox.question(self, 'Message',
-             "Are you sure to quit?", QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No, QtWidgets.QMessageBox.No)
-
-        if reply == QtWidgets.QMessageBox.Yes:
-            event.accept()
-        else:
-            event.ignore()
+    def closeEvent(self, event):
+        event.accept()
+        # Ask for exit confirmation when click on 'x' button 
+        # reply = QtWidgets.QMessageBox.question(self, 'Message',
+        #      "Are you sure to quit?", QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No, QtWidgets.QMessageBox.No)
+        # if reply == QtWidgets.QMessageBox.Yes:
+        #     event.accept()
+        # else:
+        #     event.ignore()
 
     def getcsvPath(self):
         self.databaseEdit.setText(QtWidgets.QFileDialog.getOpenFileName(self, "Select file", '.', "*.yml")[0])
@@ -185,16 +187,25 @@ class MainGUI(QtWidgets.QMainWindow):
                     shutil.rmtree(out_path)
                     self.checkdir(out_path)
             elif exception.errno != errno.EEXIST:
-                QtWidgets.QErrorMessage(self).showMessage(OSError.args)
+                self.allerrors(OSError.args)
                 raise
 
     def updateDefFolder(self):
         defFolder = time.strftime("%Y%m%d-%H%M%S")
         self.projectEdit.setText(defFolder)
 
+    def allerrors(self, errorArgs):
+        err_msg = QtWidgets.QMessageBox()
+        err_msg.setIcon(QtWidgets.QMessageBox.Critical)
+        err_msg.setWindowTitle("Error")
+        err_msg.setText("Project " + self.projectEdit.text() + " failed with unhandled error!")
+        err_msg.setDetailedText(errorArgs)
+        err_msg.setStandardButtons(QtWidgets.QMessageBox.Ok)
+        err_msg.adjustSize()
+        err_msg.exec_()
+
     def config_gen(self): # This function cover the config generator
-        
-        out_path = 'outputs' / Path(self.projectEdit.text())
+        out_path = script_path / 'outputs' / Path(self.projectEdit.text())
         db_path = self.databaseEdit.text()
         tp_path = Path(self.templateEdit.text()).parent
         tp_name = Path(self.templateEdit.text()).name
@@ -204,23 +215,69 @@ class MainGUI(QtWidgets.QMainWindow):
         
         # Load data from YAML into Python dictionary
         print("Load YAML database...")
-        input_db=yaml.load(open(db_path), Loader=yaml.FullLoader)
-        
-        # Load Jinja2 template
-        print("Load Jinja2 template...")
-        env = Environment(loader = FileSystemLoader(str(tp_path)), trim_blocks=True, lstrip_blocks=True)
-        input_tp = env.get_template(tp_name)
+        try:
+            input_db=yaml.load(open(db_path), Loader=yaml.SafeLoader)
+        except yaml.YAMLError as exc:
+            errorArgs = "Error while parsing YAML file:"
+            if hasattr(exc, "problem_mark"):
+                if exc.context != None:
+                    errorArgs = errorArgs + "  parser says\n" + str(exc.problem_mark) + "\n  " + str(exc.problem) + " " + str(exc.context) + "\nPlease correct data and retry."
+                    print(errorArgs)
+                    self.allerrors(errorArgs)
+                else:
+                    errorArgs = errorArgs + "  parser says\n" + str(exc.problem_mark) + "\n  " + str(exc.problem) + "\nPlease correct data and retry."
+                    print(errorArgs)
+                    self.allerrors(errorArgs)
+            else:
+                errorArgs = errorArgs + str(exc.args)
+                print(errorArgs)
+                self.allerrors(errorArgs)
+            return
 
-        #Render the template with data and print the output
-        print("Creating templates...")
+        # Load Jinja2 template
+        print("Create Jinja2 Environment...")
+        try:
+            env = jinja2.Environment(loader = jinja2.FileSystemLoader(str(tp_path)), trim_blocks=True, lstrip_blocks=True)
+        except jinja2.TemplateError as exc:
+            errorArgs = "Error while loading Jinja2 Environment:"
+            errorArgs = errorArgs + str(exc.args)
+            print(errorArgs)
+            self.allerrors(errorArgs)
+            return
+        
+        print("Load Jinja2 Template...")
+        try:
+            input_tp = env.get_template(tp_name)
+        except jinja2.TemplateSyntaxError as exc:
+            errorArgs = "Syntax Error while parsing Jinja2 template:"
+            errorArgs = errorArgs + str(exc.args)
+            print(errorArgs)
+            self.allerrors(errorArgs)
+            return
+        except jinja2.TemplateError as exc:
+            errorArgs = "Template Error while parsing Jinja2 template:"
+            errorArgs = errorArgs + str(exc.args)
+            print(errorArgs)
+            self.allerrors(errorArgs)
+            return
+
+        # Render the template with data and print the output
+        print("Rendering templates...")
         for entry in input_db:
             result = input_tp.render(entry)
             out_file_name=next(iter(entry.values())) + fileExt
             out_file = open(out_path / out_file_name, 'w')
             out_file.write(result)
             out_file.close()
-            print("Configuration '%s' created..." % (next(iter(entry.values())) + fileExt))
-        QtWidgets.QMessageBox.about(self, "Task finished", "The job related with project " + self.projectEdit.text() + " is completed!") 
+            print("Configuration '%s' created..." % (out_file_name))
+        end_msg = QtWidgets.QMessageBox()
+        end_msg.setIcon(QtWidgets.QMessageBox.Information)
+        end_msg.setWindowTitle("Task Finished")
+        end_msg.setText("Project " + self.projectEdit.text() + " completed!\nThe files have been generated in the folder:\n" + str(out_path))
+        end_msg.setDetailedText("< put logs here >")
+        end_msg.setStandardButtons(QtWidgets.QMessageBox.Ok)
+        end_msg.adjustSize()
+        end_msg.exec_()
 
 def bind(func, to):
     "Bind function to instance, unbind if needed"
