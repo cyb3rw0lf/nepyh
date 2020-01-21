@@ -1,0 +1,26 @@
+{# This is an example of template in Jinja2 format to be user with NEPYH #}
+#
+hostname {{hostname}}
+#
+{% if banner is defined %}
+header login information $
+{{banner}}$
+#
+{% endif %}
+{% if mgt is defined %}
+interface loopback0
+ ip address {{mgt.ip}} {{mgt.mask|default("255.255.255.255")}}
+#
+{% endif %}
+{% for intf in interfaces %}
+interface {{intf.name}}
+ description {{intf.description}}
+ ip address {{intf.ip}} {{intf.mask}}
+#
+{% endfor %}
+{% for prefix in prefixes %}
+{% set ip = prefix.partition('/')[0] %}
+{% set mask = prefix.partition('/')[2]|int %}
+ip ip-prefix LOCAL_NETWORK permit {{ip}} {{mask}}
+{% endfor %}
+#

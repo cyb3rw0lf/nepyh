@@ -24,6 +24,7 @@ import types
 import shutil
 from jinja2 import Environment, FileSystemLoader #Import necessary functions from Jinja2 module
 import yaml
+from pathlib import Path
 
 __author__ = "Emanuele Rossi a.k.a. cyb3rw0lf"
 __credits__ = ["cyb3rw0lf"]
@@ -173,9 +174,7 @@ class MainGUI(QtWidgets.QMainWindow):
     def gettpPath(self):
         self.templateEdit.setText(QtWidgets.QFileDialog.getOpenFileName(self, 'Select file', '.', "*.j2")[0])
 
-    def checkdir(self): # This function will check if the destination folder already exist and create one if not
-        out_path = self.projectEdit.text()
-
+    def checkdir(self, out_path): # This function will check if the destination folder already exist and create one if not
         try:
             os.makedirs(out_path)
         except OSError as exception:
@@ -184,9 +183,9 @@ class MainGUI(QtWidgets.QMainWindow):
                  "Project folder already exists and will be overwritten, continue?", QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No, QtWidgets.QMessageBox.No)
                 if reply == QtWidgets.QMessageBox.Yes:
                     shutil.rmtree(out_path)
-                    self.checkdir()
+                    self.checkdir(out_path)
             elif exception.errno != errno.EEXIST:
-                QtWidgets.QErrorMessage.showMessage(OSError.args)
+                QtWidgets.QErrorMessage(self).showMessage(OSError.args)
                 raise
 
     def updateDefFolder(self):
@@ -195,13 +194,13 @@ class MainGUI(QtWidgets.QMainWindow):
 
     def config_gen(self): # This function cover the config generator
         
-        out_path = self.projectEdit.text()
+        out_path = 'outputs' / Path(self.projectEdit.text())
         db_path = self.databaseEdit.text()
-        tp_path = os.path.dirname(self.templateEdit.text())
-        tp_name = os.path.basename(self.templateEdit.text())
+        tp_path = Path(self.templateEdit.text()).parent
+        tp_name = Path(self.templateEdit.text()).name
         fileExt = self.fileExtEdit.text()
 
-        self.checkdir()
+        self.checkdir(out_path)
         
         # Load data from YAML into Python dictionary
         print("Load YAML database...")
@@ -209,18 +208,19 @@ class MainGUI(QtWidgets.QMainWindow):
         
         # Load Jinja2 template
         print("Load Jinja2 template...")
-        env = Environment(loader = FileSystemLoader(tp_path), trim_blocks=True, lstrip_blocks=True)
+        env = Environment(loader = FileSystemLoader(str(tp_path)), trim_blocks=True, lstrip_blocks=True)
         input_tp = env.get_template(tp_name)
 
         #Render the template with data and print the output
         print("Creating templates...")
         for entry in input_db:
             result = input_tp.render(entry)
-            out_file = open(os.path.join(out_path, next(iter(entry.values())) + fileExt), "w")
+            out_file_name=next(iter(entry.values())) + fileExt
+            out_file = open(out_path / out_file_name, 'w')
             out_file.write(result)
             out_file.close()
             print("Configuration '%s' created..." % (next(iter(entry.values())) + fileExt))
-        QtWidgets.QMessageBox.about(self, "Task finished", "The job related with project " + self.projectEdit.text() + "is completed!") 
+        QtWidgets.QMessageBox.about(self, "Task finished", "The job related with project " + self.projectEdit.text() + " is completed!") 
 
 def bind(func, to):
     "Bind function to instance, unbind if needed"
