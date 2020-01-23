@@ -15,28 +15,28 @@ The filename is the value of the first dictionary found in the list.
 This code follow PEP 8 style guide and it use 4 spaces for indentation.
 """
 
+from PyQt5 import QtCore, QtWidgets, QtGui # import PyQt5 for GUI, to install "pip3 install PyQt5"
+from pathlib import Path
 import os # import OS module to create directory
 import errno
 import sys
 import time
-from PyQt5 import QtCore, QtWidgets, QtGui # import PyQt5 for GUI, to install "pip3 install PyQt5"
 import types
 import shutil
 import jinja2
 import yaml
-from pathlib import Path
 
-__author__ = "Emanuele Rossi a.k.a. cyb3rw0lf"
+__author__ = "Emanuele Rossi"
 __credits__ = ["cyb3rw0lf"]
-
+__appName__ = "N.E.Py.H. - Network Engineer Python Helper"
 __license__ = "GPL"
 __version__ = "1.0.0"
+__status__ = "Production"
 __maintainer__ = "cyb3rw0lf"
 __homepage__ = "https://github.com/cyb3rw0lf/nepyh"
 __email__ = "cyb3rw0lf@protonmail.com"
 __issues__ = "https://github.com/cyb3rw0lf/nepyh/issues"
-__status__ = "Production"
-__usage__ = "Chose a Database file in YAML format and a Template file in Jinja2 format. It's mandatory that YAML file start with a list."
+__usage__ = "Chose a Database file in YAML format and a Template file in Jinja2 format.\nIt's mandatory that YAML file start with a list."
 
 defFolder = time.strftime("%Y%m%d-%H%M%S")
 script_path = Path(__file__).resolve().parent
@@ -59,7 +59,14 @@ class MainGUI(QtWidgets.QMainWindow):
 
         # Menubar Documentation action:
         documentationAction = QtWidgets.QAction('&Documentation', self)
+        documentationAction.setShortcut('F1')
         documentationAction.setStatusTip('Help and guidelines on NEPyH')
+        documentationAction.triggered.connect(lambda: QtGui.QDesktopServices.openUrl(QtCore.QUrl(__homepage__)))
+
+        # Menubar Documentation action:
+        issuesAction = QtWidgets.QAction('&Issues', self)
+        issuesAction.setStatusTip('Report an issue')
+        issuesAction.triggered.connect(lambda: QtGui.QDesktopServices.openUrl(QtCore.QUrl(__issues__)))
 
         # Menubar SW Upgrade action:
         swupgradeAction = QtWidgets.QAction('&SW Upgrade', self)
@@ -68,6 +75,7 @@ class MainGUI(QtWidgets.QMainWindow):
         # Menubar About action:
         aboutAction = QtWidgets.QAction('&About', self)
         aboutAction.setStatusTip('Information about NEPyH')
+        aboutAction.triggered.connect(lambda: self.about())
 
         # Create a status bar
         self.statusBar()
@@ -82,6 +90,7 @@ class MainGUI(QtWidgets.QMainWindow):
         # Menubar Help
         helpMenu = menubar.addMenu('&Help')
         helpMenu.addAction(documentationAction)
+        helpMenu.addAction(issuesAction)
         helpMenu.addAction(swupgradeAction)
         helpMenu.addAction(aboutAction)
 
@@ -112,7 +121,7 @@ class MainGUI(QtWidgets.QMainWindow):
         self.fileExtEdit.focusInEvent = bind(lambda w, e: QtCore.QTimer.singleShot(0, w.selectAll), self.fileExtEdit)
 
         self.databaseBtn = QtWidgets.QPushButton('Browse')
-        self.databaseBtn.clicked.connect(self.getcsvPath)
+        self.databaseBtn.clicked.connect(self.getdbPath)
         self.templateBtn = QtWidgets.QPushButton('Browse')
         self.templateBtn.clicked.connect(self.gettpPath)
         self.projectBtn = QtWidgets.QPushButton('Update')
@@ -150,7 +159,7 @@ class MainGUI(QtWidgets.QMainWindow):
         # Set main windows size, position, title and icons
         self.resize(600,10)
         self.center()
-        self.setWindowTitle('NEPyH - Network Engineer Python Helper v' + __version__)
+        self.setWindowTitle(__appName__)
         self.setWindowIcon(QtGui.QIcon(str(script_path / 'nepyh.png')))
         self.show()
 
@@ -170,25 +179,46 @@ class MainGUI(QtWidgets.QMainWindow):
         # else:
         #     event.ignore()
 
-    def getcsvPath(self):
+    def about(self):
+        aboutMsg = QtWidgets.QMessageBox()
+        aboutMsg.setWindowTitle("About")
+        aboutMsg.setText(__appName__ + "\n\n" + 
+                         "Author: " + __author__ + "\n" + 
+                         "Version: " + __version__ + "\n" +
+                         "License: " + __license__ + "\n\n" +
+                         __homepage__ + "\n"
+                        )
+        aboutMsg.setStandardButtons(QtWidgets.QMessageBox.Ok)
+        # aboutMsg.adjustSize()
+        aboutMsg.exec_()
+
+    def getdbPath(self):
         self.databaseEdit.setText(QtWidgets.QFileDialog.getOpenFileName(self, "Select file", '.', "*.yml")[0])
 
     def gettpPath(self):
         self.templateEdit.setText(QtWidgets.QFileDialog.getOpenFileName(self, 'Select file', '.', "*.j2")[0])
 
     def checkdir(self, out_path): # This function will check if the destination folder already exist and create one if not
-        try:
-            os.makedirs(out_path)
-        except OSError as exception:
-            if exception.errno == errno.EEXIST:
-                reply = QtWidgets.QMessageBox.question(self, 'Message',
-                 "Project folder already exists and will be overwritten, continue?", QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No, QtWidgets.QMessageBox.No)
-                if reply == QtWidgets.QMessageBox.Yes:
-                    shutil.rmtree(out_path)
-                    self.checkdir(out_path)
-            elif exception.errno != errno.EEXIST:
-                self.allerrors(OSError.args)
-                raise
+        success = False
+        attempts = 0
+        while attempts < 3 and not success:
+            try:
+                os.makedirs(out_path)
+                success = True
+            except OSError as exc:
+                if exc.errno == errno.EEXIST:
+                    reply = QtWidgets.QMessageBox.question(self, 'Message',
+                    "Project folder already exists and will be overwritten, continue?", QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No, QtWidgets.QMessageBox.No)
+                    if reply == QtWidgets.QMessageBox.Yes:
+                        shutil.rmtree(out_path)
+                elif exc.errno == 13:
+                    errorArgs = "One of the files is already in use, please close the application and try again.\n"
+                    errorArgs = errorArgs + str(exc.args)
+                    print(errorArgs)
+                    attempts += 1
+                else:
+                    print(str(exc.args))
+                    attempts += 1
 
     def updateDefFolder(self):
         defFolder = time.strftime("%Y%m%d-%H%M%S")
@@ -256,6 +286,12 @@ class MainGUI(QtWidgets.QMainWindow):
             return
         except jinja2.TemplateError as exc:
             errorArgs = "Template Error while parsing Jinja2 template:"
+            errorArgs = errorArgs + str(exc.args)
+            print(errorArgs)
+            self.allerrors(errorArgs)
+            return
+        except jinja2.UndefinedError as exc:
+            errorArgs = "Unmdefined Error while parsing Jinja2 template:"
             errorArgs = errorArgs + str(exc.args)
             print(errorArgs)
             self.allerrors(errorArgs)

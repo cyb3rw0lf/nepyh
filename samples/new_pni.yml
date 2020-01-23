@@ -1,0 +1,39 @@
+# PNI YAML DB example
+---
+- peer: CDN777
+  peer_as: 1234
+  peer_type: PRIVATE_PEER
+  email: blabla@blabla.com
+  sid: SID1234
+  community: 313
+  eth_trunk: 15
+  ip: 1.1.1.1
+  peer_ip: 1.1.1.2
+  mask: 31
+  ipv6: 1::1:1:1
+  peer_ipv6: 1::1:1:2
+  maskv6: 126
+  interfaces:
+    - { name: 100GE1/0/0, idn: IDN1234, tm: TR }
+    - { name: 100GE1/0/1, idn: IDN1235, tm: TR }
+  if_bw: 100G
+  tot_bw: 2x100G
+
+- peer: UP123
+  peer_as: 1234
+  peer_type: UPSTREAM
+  email: blabla@blabla.com
+  sid: SID1235
+  community: 105
+  eth_trunk: 10
+  ip: 1.1.1.1
+  peer_ip: 1.1.1.2
+  mask: 31
+  ipv6: 1::1:1:1
+  peer_ipv6: 1::1:1:2
+  maskv6: 126
+  interfaces:
+    - { name: 100GE1/0/0, idn: IDN1234, tm: TR }
+    - { name: 100GE1/0/1, idn: IDN1235, tm: TR }
+  if_bw: 100G
+  tot_bw: 2x100G
