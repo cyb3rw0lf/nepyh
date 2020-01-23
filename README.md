@@ -42,6 +42,8 @@ See the sample folder for examples of input files.
   ``` python3 nepyh.py ``` <Windows>
 * Select database, template, project name, output extension and press "Run"
   
+  ![NEPyH Screenshot](/samples/nepyh_screenshot.png)
+
 
 ### YAML restrictions
 The YAML file must start with a list of dictionaries.
