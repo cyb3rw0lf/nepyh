@@ -28,6 +28,9 @@ import yaml
 import io
 import traceback
 import logging
+import ctypes.wintypes
+import subprocess
+import platform
 
 __author__ = 'Emanuele Rossi'
 __credits__ = ['cyb3rw0lf']
@@ -42,9 +45,18 @@ __issues__ = 'https://github.com/cyb3rw0lf/nepyh/issues'
 __usage__ = ('Chose a Database file in YAML format and a Template file in Jinja2 format.\n'
              "It's mandatory that YAML file start with a list.")
 __logfile__ = 'logfile.log'
+__YAMLlint__ = 'http://www.yamllint.com/'
 
 defFolder = time.strftime('%Y%m%d-%H%M%S')
 script_path = Path(__file__).resolve().parent
+__icon__ = str(script_path / 'assets' / 'nepyh_icon.png')
+
+# Get My Documents folder path on Windows to write output files
+CSIDL_PERSONAL = 5       # My Documents
+SHGFP_TYPE_CURRENT = 0   # Get current, not default value
+myDoc = ctypes.create_unicode_buffer(ctypes.wintypes.MAX_PATH)
+ctypes.windll.shell32.SHGetFolderPathW(None, CSIDL_PERSONAL, None, SHGFP_TYPE_CURRENT, myDoc)
+myDocuments = Path(myDoc.value)
 
 # GUI
 class MainGUI(QtWidgets.QMainWindow):
@@ -68,9 +80,14 @@ class MainGUI(QtWidgets.QMainWindow):
         documentationAction.setStatusTip('Help and guidelines on NEPyH')
         documentationAction.triggered.connect(lambda: QtGui.QDesktopServices.openUrl(QtCore.QUrl(__homepage__)))
 
-        # Menubar Documentation action:
+        # Menubar YAML lint action:
+        yamllintAction = QtWidgets.QAction('&YAML lint', self)
+        yamllintAction.setStatusTip('Online YAML validation tool')
+        yamllintAction.triggered.connect(lambda: QtGui.QDesktopServices.openUrl(QtCore.QUrl(__YAMLlint__)))
+        
+        # Menubar Issues action:
         issuesAction = QtWidgets.QAction('&Issues', self)
-        issuesAction.setStatusTip('Report an issue')
+        issuesAction.setStatusTip('Report bugs and issues')
         issuesAction.triggered.connect(lambda: QtGui.QDesktopServices.openUrl(QtCore.QUrl(__issues__)))
 
         # Menubar SW Upgrade action:
@@ -95,6 +112,7 @@ class MainGUI(QtWidgets.QMainWindow):
         # Menubar Help
         helpMenu = menubar.addMenu('&Help')
         helpMenu.addAction(documentationAction)
+        helpMenu.addAction(yamllintAction)
         helpMenu.addAction(issuesAction)
         helpMenu.addAction(swupgradeAction)
         helpMenu.addAction(aboutAction)
@@ -111,8 +129,8 @@ class MainGUI(QtWidgets.QMainWindow):
         centralLayout = QtWidgets.QGridLayout()
 
         # Config generator Layout elements
-        self.databaseLb = QtWidgets.QLabel('Database:')
-        self.templateLb = QtWidgets.QLabel('Template:')
+        self.databaseLb = QtWidgets.QLabel('Database: (YAML)')
+        self.templateLb = QtWidgets.QLabel('Template: (Jinja2)')
         self.projectLb = QtWidgets.QLabel('Project name:')
         self.fileExtLb = QtWidgets.QLabel('Output file extension:')
 
@@ -165,7 +183,7 @@ class MainGUI(QtWidgets.QMainWindow):
         self.resize(600,10)
         self.center()
         self.setWindowTitle(__appName__)
-        self.setWindowIcon(QtGui.QIcon(str(script_path / 'nepyh.png')))
+        self.setWindowIcon(QtGui.QIcon(__icon__))
         self.show()
 
     def center(self): # Move the main window to the center of the screen
@@ -197,6 +215,14 @@ class MainGUI(QtWidgets.QMainWindow):
         # aboutMsg.adjustSize()
         aboutMsg.exec_()
 
+    def openFile(self, filepath):
+        if platform.system() == 'Darwin':       # macOS
+            subprocess.call(('open', filepath))
+        elif platform.system() == 'Windows':    # Windows
+            os.startfile(filepath)
+        else:                                   # linux variants
+            subprocess.call(('xdg-open', filepath))
+
     def getdbPath(self):
         self.databaseEdit.setText(QtWidgets.QFileDialog.getOpenFileName(self, 'Select file', '.', '*.yml')[0])
 
@@ -213,9 +239,12 @@ class MainGUI(QtWidgets.QMainWindow):
             except OSError as exc:
                 if exc.errno == errno.EEXIST:
                     reply = QtWidgets.QMessageBox.question(self, 'Warning',
-                    'Project folder already exists and will be overwritten, continue?', QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No, QtWidgets.QMessageBox.No)
+                    'Project folder already exists and will be overwritten, continue?',
+                    QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No, QtWidgets.QMessageBox.No)
                     if reply == QtWidgets.QMessageBox.Yes:
                         shutil.rmtree(out_path)
+                    else:
+                        return
                 elif exc.errno == 13:
                     errorArgs = 'One of the files is already in use, please close the application and try again.\n'
                     errorArgs = errorArgs + str(exc.args)
@@ -230,6 +259,7 @@ class MainGUI(QtWidgets.QMainWindow):
         self.projectEdit.setText(defFolder)
 
     def handleErrors(self, errorText, errorArgs):
+        logging.error(errorText + errorArgs)
         err_msg = QtWidgets.QMessageBox()
         err_msg.setIcon(QtWidgets.QMessageBox.Critical)
         err_msg.setWindowTitle('Error')
@@ -248,7 +278,6 @@ class MainGUI(QtWidgets.QMainWindow):
         """
         infoVersion = 'Version: %s \n' % __version__
         separator = '-' * 80
-        # logFile = 'error.log'
         notice = ('An unhandled exception occurred.\n' + 
                  'Please report the problem via email to <%s>\n' 
                  'A log has been written to %s\n\n'
@@ -263,13 +292,6 @@ class MainGUI(QtWidgets.QMainWindow):
         sections = [separator, timeString, separator, errmsg, separator, tbinfo]
         msg = '\n'.join(sections)
         logging.error(infoVersion + msg)
-        # try:
-        #     f = open(logFile, "w")
-        #     f.write(infoVersion)
-        #     f.write(msg)
-        #     f.close()
-        # except IOError:
-        #     pass
         errorbox = QtWidgets.QMessageBox()
         errorbox.setIcon(QtWidgets.QMessageBox.Critical)
         errorbox.setWindowTitle('Unhandled Error')
@@ -280,7 +302,8 @@ class MainGUI(QtWidgets.QMainWindow):
     sys.excepthook = excepthook
     
     def config_gen(self): # This function cover the config generator
-        out_path = script_path / 'outputs' / Path(self.projectEdit.text())
+        # out_path = script_path / 'outputs' / Path(self.projectEdit.text())
+        out_path = myDocuments / 'NEPyH_Outputs' / Path(self.projectEdit.text())
         db_path = self.databaseEdit.text()
         tp_path = Path(self.templateEdit.text()).parent
         tp_name = Path(self.templateEdit.text()).name
@@ -296,13 +319,21 @@ class MainGUI(QtWidgets.QMainWindow):
             errorText = 'An error occurred while parsing YAML file\n'
             if hasattr(exc, 'problem_mark'):
                 if exc.context != None:
-                    errorArgs = 'Parser says\n' + str(exc.problem_mark) + '\n' + str(exc.problem) + ' ' + str(exc.context) + '\n\nPlease correct data and retry.'
-                    logging.error(errorText + errorArgs)
+                    errorArgs = ('Parser says:\n'
+                                 '%s\n'
+                                 '%s %s\n\n'
+                                 'Please correct data and retry.\n'
+                                 'Check: %s'
+                                % (str(exc.problem_mark), str(exc.problem), str(exc.context), __YAMLlint__))
                     self.handleErrors(errorText, errorArgs)
                     return
                 else:
-                    errorArgs = 'Parser says\n' + str(exc.problem_mark) + '\n' + str(exc.problem) + '\n\nPlease correct data and retry.'
-                    logging.error(errorText + errorArgs)
+                    errorArgs = ('Parser says:\n'
+                                 '%s\n'
+                                 '%s\n\n'
+                                 'Please correct data and retry.\n'
+                                 'Check: %s'
+                                 % (str(exc.problem_mark), str(exc.problem), __YAMLlint__))
                     self.handleErrors(errorText, errorArgs)
                     return
 
@@ -311,7 +342,22 @@ class MainGUI(QtWidgets.QMainWindow):
         env = jinja2.Environment(loader = jinja2.FileSystemLoader(str(tp_path)), trim_blocks=True, lstrip_blocks=True)
         
         logging.info('Load Jinja2 Template...')
-        input_tp = env.get_template(tp_name)
+        try:
+            input_tp = env.get_template(tp_name)
+        except jinja2.TemplateNotFound:
+            errorText = tp_name + ': File not found\n'
+            errorArgs = "File '%s' not found in %s\n" % (tp_name, str(tp_path))
+            self.handleErrors(errorText, errorArgs)
+            return
+        except jinja2.TemplateSyntaxError as exc:
+            errorText = 'An error occurred while reading Jinja2 template\n'
+            errorArgs = ('Syntax check failed:\n'
+                         ' %s '
+                         'in %s at line %d\n'
+                         '\n\nPlease correct data and retry.'
+                         % (exc.message, exc.filename, exc.lineno))
+            self.handleErrors(errorText, errorArgs)
+            return
 
         # Render the template with data and print the output
         logging.info('Rendering templates...')
@@ -325,11 +371,14 @@ class MainGUI(QtWidgets.QMainWindow):
         end_msg = QtWidgets.QMessageBox()
         end_msg.setIcon(QtWidgets.QMessageBox.Information)
         end_msg.setWindowTitle('Task Finished')
-        end_msg.setText('Project ' + self.projectEdit.text() + ' completed!\nThe files have been generated in the folder:\n' + str(out_path))
-        end_msg.setDetailedText('< put logs here >')
-        end_msg.setStandardButtons(QtWidgets.QMessageBox.Ok)
-        end_msg.adjustSize()
-        end_msg.exec_()
+        end_msg.setText("\nProject '%s' completed!\n\n"
+                        'The files have been generated in the folder: \n'
+                        "  '%s'\n" % (self.projectEdit.text(), str(out_path)))
+        end_msg.setDetailedText('< print partial logs from last config_gen() >')
+        end_msg.setStandardButtons(QtWidgets.QMessageBox.Ok | QtWidgets.QMessageBox.Open)
+        result = end_msg.exec_()
+        if result == QtWidgets.QMessageBox.Open:
+            self.openFile(str(out_path))
 
 def bind(func, to):
     'Bind function to instance, unbind if needed'
