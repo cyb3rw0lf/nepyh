@@ -37,7 +37,11 @@ git pull
 See the sample folder for examples of input files.
 * Create a database file in YAML format (validate on http://www.yamllint.com/)
 * Create a template file in Jinja2 format
-* Run the software ``` python3 nepyh.py ```
+* Run the software
+  ``` python3 nepyh.py ``` <Linux>
+  ``` python3 nepyh.py ``` <Windows>
+* Select database, template, project name, output extension and press "Run"
+  
 
 ### YAML restrictions
 The YAML file must start with a list of dictionaries.
