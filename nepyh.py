@@ -51,12 +51,19 @@ defFolder = time.strftime('%Y%m%d-%H%M%S')
 script_path = Path(__file__).resolve().parent
 __icon__ = str(script_path / 'assets' / 'nepyh_icon.png')
 
-# Get My Documents folder path on Windows to write output files
-CSIDL_PERSONAL = 5       # My Documents
-SHGFP_TYPE_CURRENT = 0   # Get current, not default value
-myDoc = ctypes.create_unicode_buffer(ctypes.wintypes.MAX_PATH)
-ctypes.windll.shell32.SHGetFolderPathW(None, CSIDL_PERSONAL, None, SHGFP_TYPE_CURRENT, myDoc)
-myDocuments = Path(myDoc.value)
+
+if platform.system() == 'Darwin':       # macOS
+    myDocuments = script_path
+elif platform.system() == 'Windows':    # Windows
+    # Get My Documents folder path on Windows to write output files
+    CSIDL_PERSONAL = 5       # My Documents
+    SHGFP_TYPE_CURRENT = 0   # Get current, not default value
+    myDoc = ctypes.create_unicode_buffer(ctypes.wintypes.MAX_PATH)
+    ctypes.windll.shell32.SHGetFolderPathW(None, CSIDL_PERSONAL, None, SHGFP_TYPE_CURRENT, myDoc)
+    myDocuments = Path(myDoc.value)
+else:                                   # linux variants
+    myDocuments = script_path
+
 
 # GUI
 class MainGUI(QtWidgets.QMainWindow):
@@ -316,14 +323,14 @@ class MainGUI(QtWidgets.QMainWindow):
         try:
             input_db=yaml.load(open(db_path), Loader=yaml.SafeLoader)
         except yaml.YAMLError as exc:
-            errorText = 'An error occurred while parsing YAML file\n'
+            errorText = ('An error occurred while parsing YAML file\n\n'
+                         'Please correct data and retry.\n')
             if hasattr(exc, 'problem_mark'):
                 if exc.context != None:
                     errorArgs = ('Parser says:\n'
                                  '%s\n'
                                  '%s %s\n\n'
-                                 'Please correct data and retry.\n'
-                                 'Check: %s'
+                                 'Use lint to validate your code: %s'
                                 % (str(exc.problem_mark), str(exc.problem), str(exc.context), __YAMLlint__))
                     self.handleErrors(errorText, errorArgs)
                     return
@@ -331,8 +338,7 @@ class MainGUI(QtWidgets.QMainWindow):
                     errorArgs = ('Parser says:\n'
                                  '%s\n'
                                  '%s\n\n'
-                                 'Please correct data and retry.\n'
-                                 'Check: %s'
+                                 'Use lint to validate your code: %s'
                                  % (str(exc.problem_mark), str(exc.problem), __YAMLlint__))
                     self.handleErrors(errorText, errorArgs)
                     return
@@ -350,24 +356,32 @@ class MainGUI(QtWidgets.QMainWindow):
             self.handleErrors(errorText, errorArgs)
             return
         except jinja2.TemplateSyntaxError as exc:
-            errorText = 'An error occurred while reading Jinja2 template\n'
+            errorText = ('An error occurred while reading Jinja2 template\n\n'
+                         'Please correct data and retry.\n')
             errorArgs = ('Syntax check failed:\n'
                          ' %s '
-                         'in %s at line %d\n'
-                         '\n\nPlease correct data and retry.'
+                         'in %s at line %d'
                          % (exc.message, exc.filename, exc.lineno))
             self.handleErrors(errorText, errorArgs)
             return
 
         # Render the template with data and print the output
         logging.info('Rendering templates...')
-        for entry in input_db:
-            result = input_tp.render(entry)
-            out_file_name=next(iter(entry.values())) + fileExt
-            out_file = open(out_path / out_file_name, 'w')
-            out_file.write(result)
-            out_file.close()
-            logging.info("Configuration '%s' created..." % (out_file_name))
+        try:
+            for entry in input_db:
+                result = input_tp.render(entry)
+                out_file_name=next(iter(entry.values())) + fileExt
+                out_file = open(out_path / out_file_name, 'w')
+                out_file.write(result)
+                out_file.close()
+                logging.info("Configuration '%s' created..." % (out_file_name))
+        except ValueError as exc:
+            errorText = ('An error occurred while rendering the templates\n'
+                         'The YAML file must start with a list of dictionary\n\n'
+                         'Please correct data and retry.\n')
+            errorArgs = (str(traceback.format_exc()))
+            self.handleErrors(errorText, errorArgs)
+            return
         end_msg = QtWidgets.QMessageBox()
         end_msg.setIcon(QtWidgets.QMessageBox.Information)
         end_msg.setWindowTitle('Task Finished')
