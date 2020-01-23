@@ -9,7 +9,7 @@ It can also be used for other things such as generate SecureCRT sessions files
 ### Installation
 Download the repo
 ```
-git clone https://github.com/cyb3rw0lf/nepyh
+git clone https://github.com/cyb3rw0lf/nepyh.git
 ```
 
 Enter the downloaded folder
