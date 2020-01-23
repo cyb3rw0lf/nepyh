@@ -15,7 +15,7 @@ The filename is the value of the first dictionary found in the list.
 This code follow PEP 8 style guide and it use 4 spaces for indentation.
 """
 
-from PyQt5 import QtCore, QtWidgets, QtGui # import PyQt5 for GUI, to install "pip3 install PyQt5"
+from PyQt5 import QtCore, QtWidgets, QtGui # import PyQt5 for GUI, to install 'pip3 install PyQt5'
 from pathlib import Path
 import os # import OS module to create directory
 import errno
@@ -25,20 +25,25 @@ import types
 import shutil
 import jinja2
 import yaml
+import io
+import traceback
+import logging
 
-__author__ = "Emanuele Rossi"
-__credits__ = ["cyb3rw0lf"]
-__appName__ = "N.E.Py.H. - Network Engineer Python Helper"
-__license__ = "GPL"
-__version__ = "1.0.0"
-__status__ = "Production"
-__maintainer__ = "cyb3rw0lf"
-__homepage__ = "https://github.com/cyb3rw0lf/nepyh"
-__email__ = "cyb3rw0lf@protonmail.com"
-__issues__ = "https://github.com/cyb3rw0lf/nepyh/issues"
-__usage__ = "Chose a Database file in YAML format and a Template file in Jinja2 format.\nIt's mandatory that YAML file start with a list."
+__author__ = 'Emanuele Rossi'
+__credits__ = ['cyb3rw0lf']
+__appName__ = 'N.E.Py.H. - Network Engineer Python Helper'
+__license__ = 'MIT'
+__version__ = '1.0.0'
+__status__ = 'Production'
+__maintainer__ = 'cyb3rw0lf'
+__homepage__ = 'https://github.com/cyb3rw0lf/nepyh'
+__email__ = 'cyb3rw0lf@protonmail.com'
+__issues__ = 'https://github.com/cyb3rw0lf/nepyh/issues'
+__usage__ = ('Chose a Database file in YAML format and a Template file in Jinja2 format.\n'
+             "It's mandatory that YAML file start with a list.")
+__logfile__ = 'logfile.log'
 
-defFolder = time.strftime("%Y%m%d-%H%M%S")
+defFolder = time.strftime('%Y%m%d-%H%M%S')
 script_path = Path(__file__).resolve().parent
 
 # GUI
@@ -173,7 +178,7 @@ class MainGUI(QtWidgets.QMainWindow):
         event.accept()
         # Ask for exit confirmation when click on 'x' button 
         # reply = QtWidgets.QMessageBox.question(self, 'Message',
-        #      "Are you sure to quit?", QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No, QtWidgets.QMessageBox.No)
+        #      'Are you sure to quit?', QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No, QtWidgets.QMessageBox.No)
         # if reply == QtWidgets.QMessageBox.Yes:
         #     event.accept()
         # else:
@@ -181,22 +186,22 @@ class MainGUI(QtWidgets.QMainWindow):
 
     def about(self):
         aboutMsg = QtWidgets.QMessageBox()
-        aboutMsg.setWindowTitle("About")
-        aboutMsg.setText(__appName__ + "\n\n" + 
-                         "Author: " + __author__ + "\n" + 
-                         "Version: " + __version__ + "\n" +
-                         "License: " + __license__ + "\n\n" +
-                         __homepage__ + "\n"
+        aboutMsg.setWindowTitle('About')
+        aboutMsg.setText(__appName__ + '\n\n' + 
+                         'Author: ' + __author__ + '\n' + 
+                         'Version: ' + __version__ + '\n' +
+                         'License: ' + __license__ + '\n\n' +
+                         __homepage__ + '\n'
                         )
         aboutMsg.setStandardButtons(QtWidgets.QMessageBox.Ok)
         # aboutMsg.adjustSize()
         aboutMsg.exec_()
 
     def getdbPath(self):
-        self.databaseEdit.setText(QtWidgets.QFileDialog.getOpenFileName(self, "Select file", '.', "*.yml")[0])
+        self.databaseEdit.setText(QtWidgets.QFileDialog.getOpenFileName(self, 'Select file', '.', '*.yml')[0])
 
     def gettpPath(self):
-        self.templateEdit.setText(QtWidgets.QFileDialog.getOpenFileName(self, 'Select file', '.', "*.j2")[0])
+        self.templateEdit.setText(QtWidgets.QFileDialog.getOpenFileName(self, 'Select file', '.', '*.j2')[0])
 
     def checkdir(self, out_path): # This function will check if the destination folder already exist and create one if not
         success = False
@@ -207,33 +212,73 @@ class MainGUI(QtWidgets.QMainWindow):
                 success = True
             except OSError as exc:
                 if exc.errno == errno.EEXIST:
-                    reply = QtWidgets.QMessageBox.question(self, 'Message',
-                    "Project folder already exists and will be overwritten, continue?", QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No, QtWidgets.QMessageBox.No)
+                    reply = QtWidgets.QMessageBox.question(self, 'Warning',
+                    'Project folder already exists and will be overwritten, continue?', QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No, QtWidgets.QMessageBox.No)
                     if reply == QtWidgets.QMessageBox.Yes:
                         shutil.rmtree(out_path)
                 elif exc.errno == 13:
-                    errorArgs = "One of the files is already in use, please close the application and try again.\n"
+                    errorArgs = 'One of the files is already in use, please close the application and try again.\n'
                     errorArgs = errorArgs + str(exc.args)
-                    print(errorArgs)
+                    logging.debug(errorArgs)
                     attempts += 1
                 else:
-                    print(str(exc.args))
+                    logging.debug(str(exc.args))
                     attempts += 1
 
     def updateDefFolder(self):
-        defFolder = time.strftime("%Y%m%d-%H%M%S")
+        defFolder = time.strftime('%Y%m%d-%H%M%S')
         self.projectEdit.setText(defFolder)
 
-    def allerrors(self, errorArgs):
+    def handleErrors(self, errorText, errorArgs):
         err_msg = QtWidgets.QMessageBox()
         err_msg.setIcon(QtWidgets.QMessageBox.Critical)
-        err_msg.setWindowTitle("Error")
-        err_msg.setText("Project " + self.projectEdit.text() + " failed with unhandled error!")
+        err_msg.setWindowTitle('Error')
+        err_msg.setText(errorText)
         err_msg.setDetailedText(errorArgs)
         err_msg.setStandardButtons(QtWidgets.QMessageBox.Ok)
-        err_msg.adjustSize()
         err_msg.exec_()
 
+    def excepthook(excType, excValue, tracebackobj):
+        """
+        Global function to catch unhandled exceptions.
+        
+        @param excType exception type
+        @param excValue exception value
+        @param tracebackobj traceback object
+        """
+        infoVersion = 'Version: %s \n' % __version__
+        separator = '-' * 80
+        # logFile = 'error.log'
+        notice = ('An unhandled exception occurred.\n' + 
+                 'Please report the problem via email to <%s>\n' 
+                 'A log has been written to %s\n\n'
+                 'Expand for more details:') % (__email__, __logfile__)
+        timeString = time.strftime("%Y-%m-%d, %H:%M:%S")
+        
+        tbinfofile = io.StringIO()
+        traceback.print_tb(tracebackobj, None, tbinfofile)
+        tbinfofile.seek(0)
+        tbinfo = tbinfofile.read()
+        errmsg = '%s: \n%s' % (str(excType), str(excValue))
+        sections = [separator, timeString, separator, errmsg, separator, tbinfo]
+        msg = '\n'.join(sections)
+        logging.error(infoVersion + msg)
+        # try:
+        #     f = open(logFile, "w")
+        #     f.write(infoVersion)
+        #     f.write(msg)
+        #     f.close()
+        # except IOError:
+        #     pass
+        errorbox = QtWidgets.QMessageBox()
+        errorbox.setIcon(QtWidgets.QMessageBox.Critical)
+        errorbox.setWindowTitle('Unhandled Error')
+        errorbox.setText(notice)
+        errorbox.setDetailedText(str(infoVersion) + str(msg))
+        errorbox.exec_()
+    
+    sys.excepthook = excepthook
+    
     def config_gen(self): # This function cover the config generator
         out_path = script_path / 'outputs' / Path(self.projectEdit.text())
         db_path = self.databaseEdit.text()
@@ -244,85 +289,65 @@ class MainGUI(QtWidgets.QMainWindow):
         self.checkdir(out_path)
         
         # Load data from YAML into Python dictionary
-        print("Load YAML database...")
+        logging.info('Load YAML database...')
         try:
             input_db=yaml.load(open(db_path), Loader=yaml.SafeLoader)
         except yaml.YAMLError as exc:
-            errorArgs = "Error while parsing YAML file:"
-            if hasattr(exc, "problem_mark"):
+            errorText = 'An error occurred while parsing YAML file\n'
+            if hasattr(exc, 'problem_mark'):
                 if exc.context != None:
-                    errorArgs = errorArgs + "  parser says\n" + str(exc.problem_mark) + "\n  " + str(exc.problem) + " " + str(exc.context) + "\nPlease correct data and retry."
-                    print(errorArgs)
-                    self.allerrors(errorArgs)
+                    errorArgs = 'Parser says\n' + str(exc.problem_mark) + '\n' + str(exc.problem) + ' ' + str(exc.context) + '\n\nPlease correct data and retry.'
+                    logging.error(errorText + errorArgs)
+                    self.handleErrors(errorText, errorArgs)
+                    return
                 else:
-                    errorArgs = errorArgs + "  parser says\n" + str(exc.problem_mark) + "\n  " + str(exc.problem) + "\nPlease correct data and retry."
-                    print(errorArgs)
-                    self.allerrors(errorArgs)
-            else:
-                errorArgs = errorArgs + str(exc.args)
-                print(errorArgs)
-                self.allerrors(errorArgs)
-            return
+                    errorArgs = 'Parser says\n' + str(exc.problem_mark) + '\n' + str(exc.problem) + '\n\nPlease correct data and retry.'
+                    logging.error(errorText + errorArgs)
+                    self.handleErrors(errorText, errorArgs)
+                    return
 
         # Load Jinja2 template
-        print("Create Jinja2 Environment...")
-        try:
-            env = jinja2.Environment(loader = jinja2.FileSystemLoader(str(tp_path)), trim_blocks=True, lstrip_blocks=True)
-        except jinja2.TemplateError as exc:
-            errorArgs = "Error while loading Jinja2 Environment:"
-            errorArgs = errorArgs + str(exc.args)
-            print(errorArgs)
-            self.allerrors(errorArgs)
-            return
+        logging.info('Create Jinja2 Environment...')
+        env = jinja2.Environment(loader = jinja2.FileSystemLoader(str(tp_path)), trim_blocks=True, lstrip_blocks=True)
         
-        print("Load Jinja2 Template...")
-        try:
-            input_tp = env.get_template(tp_name)
-        except jinja2.TemplateSyntaxError as exc:
-            errorArgs = "Syntax Error while parsing Jinja2 template:"
-            errorArgs = errorArgs + str(exc.args)
-            print(errorArgs)
-            self.allerrors(errorArgs)
-            return
-        except jinja2.TemplateError as exc:
-            errorArgs = "Template Error while parsing Jinja2 template:"
-            errorArgs = errorArgs + str(exc.args)
-            print(errorArgs)
-            self.allerrors(errorArgs)
-            return
-        except jinja2.UndefinedError as exc:
-            errorArgs = "Unmdefined Error while parsing Jinja2 template:"
-            errorArgs = errorArgs + str(exc.args)
-            print(errorArgs)
-            self.allerrors(errorArgs)
-            return
+        logging.info('Load Jinja2 Template...')
+        input_tp = env.get_template(tp_name)
 
         # Render the template with data and print the output
-        print("Rendering templates...")
+        logging.info('Rendering templates...')
         for entry in input_db:
             result = input_tp.render(entry)
             out_file_name=next(iter(entry.values())) + fileExt
             out_file = open(out_path / out_file_name, 'w')
             out_file.write(result)
             out_file.close()
-            print("Configuration '%s' created..." % (out_file_name))
+            logging.info("Configuration '%s' created..." % (out_file_name))
         end_msg = QtWidgets.QMessageBox()
         end_msg.setIcon(QtWidgets.QMessageBox.Information)
-        end_msg.setWindowTitle("Task Finished")
-        end_msg.setText("Project " + self.projectEdit.text() + " completed!\nThe files have been generated in the folder:\n" + str(out_path))
-        end_msg.setDetailedText("< put logs here >")
+        end_msg.setWindowTitle('Task Finished')
+        end_msg.setText('Project ' + self.projectEdit.text() + ' completed!\nThe files have been generated in the folder:\n' + str(out_path))
+        end_msg.setDetailedText('< put logs here >')
         end_msg.setStandardButtons(QtWidgets.QMessageBox.Ok)
         end_msg.adjustSize()
         end_msg.exec_()
 
 def bind(func, to):
-    "Bind function to instance, unbind if needed"
-    return types.MethodType(func.__func__ if hasattr(func, "__self__") else func, to)
+    'Bind function to instance, unbind if needed'
+    return types.MethodType(func.__func__ if hasattr(func, '__self__') else func, to)
 
 def main():
+    logging.basicConfig(
+        level=logging.DEBUG,
+        format='%(asctime)-15s %(levelname)-8s %(message)s',
+        handlers=[
+        logging.FileHandler(__logfile__.format(), mode='w'),
+        logging.StreamHandler()
+        ])
+    logging.info('Session Started')
     app = QtWidgets.QApplication(sys.argv)
     mainWindow = MainGUI()
     status = app.exec_()
+    logging.info('Session Finished')
     sys.exit(status)
 
 if __name__ == '__main__':
