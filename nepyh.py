@@ -47,9 +47,9 @@ __usage__ = ('Chose a Database file in YAML format and a Template file in Jinja2
 __logfile__ = 'logfile.log'
 __YAMLlint__ = 'http://www.yamllint.com/'
 
-defFolder = time.strftime('%Y%m%d-%H%M%S')
 script_path = Path(__file__).resolve().parent
 __icon__ = str(script_path / 'assets' / 'nepyh_icon.png')
+defFolder = time.strftime('%Y%m%d-%H%M%S')
 
 
 if platform.system() == 'Darwin':       # macOS
