@@ -52,10 +52,11 @@ __icon__ = str(script_path / 'assets' / 'nepyh_icon.png')
 defFolder = time.strftime('%Y%m%d-%H%M%S')
 
 
+# Output files are written inside My Documents folder for Windows and inside script folder for Mac OS and Linux
 if platform.system() == 'Darwin':       # macOS
     myDocuments = script_path
 elif platform.system() == 'Windows':    # Windows
-    # Get My Documents folder path on Windows to write output files
+    # Get My Documents folder path on Windows
     CSIDL_PERSONAL = 5       # My Documents
     SHGFP_TYPE_CURRENT = 0   # Get current, not default value
     myDoc = ctypes.create_unicode_buffer(ctypes.wintypes.MAX_PATH)
@@ -64,9 +65,12 @@ elif platform.system() == 'Windows':    # Windows
 else:                                   # linux variants
     myDocuments = script_path
 
-
 # GUI
 class MainGUI(QtWidgets.QMainWindow):
+
+    ###############################
+    ##     START of GUI code     ##
+    ###############################
 
     def __init__(self):
         super(MainGUI, self).__init__()
@@ -136,11 +140,12 @@ class MainGUI(QtWidgets.QMainWindow):
         centralLayout = QtWidgets.QGridLayout()
 
         # Config generator Layout elements
+        # Labels
         self.databaseLb = QtWidgets.QLabel('Database: (YAML)')
         self.templateLb = QtWidgets.QLabel('Template: (Jinja2)')
         self.projectLb = QtWidgets.QLabel('Project name:')
         self.fileExtLb = QtWidgets.QLabel('Output file extension:')
-
+        # Text lines
         self.databaseEdit = QtWidgets.QLineEdit()
         self.templateEdit = QtWidgets.QLineEdit()
         self.projectEdit = QtWidgets.QLineEdit(defFolder)
@@ -149,17 +154,17 @@ class MainGUI(QtWidgets.QMainWindow):
         self.fileExtEdit = QtWidgets.QLineEdit('.txt')
         # This is needed to select all text when click on LineEdit
         self.fileExtEdit.focusInEvent = bind(lambda w, e: QtCore.QTimer.singleShot(0, w.selectAll), self.fileExtEdit)
-
+        # Buttons
         self.databaseBtn = QtWidgets.QPushButton('Browse')
-        self.databaseBtn.clicked.connect(self.getdbPath)
+        self.databaseBtn.clicked.connect(self._getdbPath)
         self.templateBtn = QtWidgets.QPushButton('Browse')
-        self.templateBtn.clicked.connect(self.gettpPath)
+        self.templateBtn.clicked.connect(self._gettpPath)
         self.projectBtn = QtWidgets.QPushButton('Update')
-        self.projectBtn.clicked.connect(self.updateDefFolder)
+        self.projectBtn.clicked.connect(self._updateDefFolder)
         self.cfgenBtn = QtWidgets.QPushButton('Run')
         self.cfgenBtn.clicked.connect(self.config_gen)
 
-        # Config generator Layout
+        # Config generator Layout - make a grid and stitch all together
         cfgenLayout = QtWidgets.QGridLayout()
         cfgenLayout.setSpacing(10)
         cfgenLayout.addWidget(self.databaseLb, 1, 0)
@@ -193,13 +198,16 @@ class MainGUI(QtWidgets.QMainWindow):
         self.setWindowIcon(QtGui.QIcon(__icon__))
         self.show()
 
-    def center(self): # Move the main window to the center of the screen
+        # Override system excepthook to show error within the GUI
+        sys.excepthook = self._excepthook
+
+    def center(self): # [GUI] Move the main window to the center of the screen
         qr = self.frameGeometry()
         cp = QtWidgets.QDesktopWidget().availableGeometry().center()
         qr.moveCenter(cp)
         self.move(qr.topLeft())
 
-    def closeEvent(self, event):
+    def closeEvent(self, event): # [GUI] The main window is closed
         event.accept()
         # Ask for exit confirmation when click on 'x' button 
         # reply = QtWidgets.QMessageBox.question(self, 'Message',
@@ -209,73 +217,34 @@ class MainGUI(QtWidgets.QMainWindow):
         # else:
         #     event.ignore()
 
-    def about(self):
+    def about(self): # [GUI] Ab out window
         aboutMsg = QtWidgets.QMessageBox()
+        aboutMsg.setContentsMargins(10, 0, 40, 0)
         aboutMsg.setWindowTitle('About')
-        aboutMsg.setText(__appName__ + '\n\n' + 
-                         'Author: ' + __author__ + '\n' + 
-                         'Version: ' + __version__ + '\n' +
-                         'License: ' + __license__ + '\n\n' +
-                         __homepage__ + '\n'
+        aboutMsg.setText('\n   %s\n\n'
+                         '        Author: %s\n' 
+                         '        Version: %s\n' 
+                         '        License:  %s\n\n'
+                         '        %s' % (__appName__, __author__, __version__, __license__, __homepage__)
                         )
         aboutMsg.setStandardButtons(QtWidgets.QMessageBox.Ok)
-        # aboutMsg.adjustSize()
         aboutMsg.exec_()
+    
+    ###############################
+    ##      END of GUI code      ##
+    ###############################
 
-    def openFile(self, filepath):
-        if platform.system() == 'Darwin':       # macOS
-            subprocess.call(('open', filepath))
-        elif platform.system() == 'Windows':    # Windows
-            os.startfile(filepath)
-        else:                                   # linux variants
-            subprocess.call(('xdg-open', filepath))
-
-    def getdbPath(self):
-        self.databaseEdit.setText(QtWidgets.QFileDialog.getOpenFileName(self, 'Select file', '.', '*.yml')[0])
-
-    def gettpPath(self):
-        self.templateEdit.setText(QtWidgets.QFileDialog.getOpenFileName(self, 'Select file', '.', '*.j2')[0])
-
-    def checkdir(self, out_path): # This function will check if the destination folder already exist and create one if not
-        success = False
-        attempts = 0
-        while attempts < 3 and not success:
-            try:
-                os.makedirs(out_path)
-                success = True
-            except OSError as exc:
-                if exc.errno == errno.EEXIST:
-                    reply = QtWidgets.QMessageBox.question(self, 'Warning',
-                    'Project folder already exists and will be overwritten, continue?',
-                    QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No, QtWidgets.QMessageBox.No)
-                    if reply == QtWidgets.QMessageBox.Yes:
-                        shutil.rmtree(out_path)
-                    else:
-                        return
-                elif exc.errno == 13:
-                    errorArgs = 'One of the files is already in use, please close the application and try again.\n'
-                    errorArgs = errorArgs + str(exc.args)
-                    logging.debug(errorArgs)
-                    attempts += 1
-                else:
-                    logging.debug(str(exc.args))
-                    attempts += 1
-
-    def updateDefFolder(self):
+    def _updateDefFolder(self):
         defFolder = time.strftime('%Y%m%d-%H%M%S')
         self.projectEdit.setText(defFolder)
 
-    def handleErrors(self, errorText, errorArgs):
-        logging.error(errorText + errorArgs)
-        err_msg = QtWidgets.QMessageBox()
-        err_msg.setIcon(QtWidgets.QMessageBox.Critical)
-        err_msg.setWindowTitle('Error')
-        err_msg.setText(errorText)
-        err_msg.setDetailedText(errorArgs)
-        err_msg.setStandardButtons(QtWidgets.QMessageBox.Ok)
-        err_msg.exec_()
+    def _getdbPath(self):
+        self.databaseEdit.setText(QtWidgets.QFileDialog.getOpenFileName(self, 'Select file', '.', '*.yml')[0])
 
-    def excepthook(excType, excValue, tracebackobj):
+    def _gettpPath(self):
+        self.templateEdit.setText(QtWidgets.QFileDialog.getOpenFileName(self, 'Select file', '.', '*.j2')[0])
+
+    def _excepthook(excType, excValue, tracebackobj):
         """
         Global function to catch unhandled exceptions.
         
@@ -300,26 +269,72 @@ class MainGUI(QtWidgets.QMainWindow):
         msg = '\n'.join(sections)
         logging.error(infoVersion + msg)
         errorbox = QtWidgets.QMessageBox()
+        errorbox.setContentsMargins(10, 0, 40, 0)
         errorbox.setIcon(QtWidgets.QMessageBox.Critical)
         errorbox.setWindowTitle('Unhandled Error')
         errorbox.setText(notice)
         errorbox.setDetailedText(str(infoVersion) + str(msg))
         errorbox.exec_()
-    
-    sys.excepthook = excepthook
+
+    def handleErrors(self, errorText, errorArgs):
+        logging.error(errorText + errorArgs)
+        err_msg = QtWidgets.QMessageBox()
+        err_msg.setContentsMargins(10, 0, 40, 0)
+        err_msg.setIcon(QtWidgets.QMessageBox.Critical)
+        err_msg.setWindowTitle('Error')
+        err_msg.setText(errorText)
+        err_msg.setDetailedText(errorArgs)
+        err_msg.setStandardButtons(QtWidgets.QMessageBox.Ok)
+        err_msg.exec_()
+
+    def openFile(self, filepath):
+        if platform.system() == 'Darwin':       # macOS
+            subprocess.call(('open', filepath))
+        elif platform.system() == 'Windows':    # Windows
+            os.startfile(filepath)
+        else:                                   # linux variants
+            subprocess.call(('xdg-open', filepath))
+
+    def checkdir(self, out_path): # This function will check if the destination folder already exist and create one if not
+        attempts = 0
+        while attempts < 3: # Try multiple time to fix when file is already opened
+            try:
+                os.makedirs(out_path)
+                return True
+            except OSError as exc:
+                if exc.errno == errno.EEXIST:
+                    reply = QtWidgets.QMessageBox.question(self, 'Warning',
+                            'Project folder already exists and will be overwritten, continue?',
+                            QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No, QtWidgets.QMessageBox.No)
+                    if reply == QtWidgets.QMessageBox.Yes:
+                        shutil.rmtree(out_path)
+                    else:
+                        return False
+                elif exc.errno == 13:
+                    errorArgs = 'One of the files is already in use, please close the application and try again.\n'
+                    errorArgs = errorArgs + str(exc.args)
+                    logging.debug(errorArgs)
+                    attempts += 1
+                else:
+                    logging.debug(str(exc.args))
+                    attempts += 1
     
     def config_gen(self): # This function cover the config generator
-        # out_path = script_path / 'outputs' / Path(self.projectEdit.text())
         out_path = myDocuments / 'NEPyH_Outputs' / Path(self.projectEdit.text())
         db_path = self.databaseEdit.text()
         tp_path = Path(self.templateEdit.text()).parent
         tp_name = Path(self.templateEdit.text()).name
         fileExt = self.fileExtEdit.text()
 
-        self.checkdir(out_path)
+        if self.checkdir(out_path) == False:
+            return
         
+        report = '' # Initialize final report to the user for each config_gen() cycle
+
         # Load data from YAML into Python dictionary
-        logging.info('Load YAML database...')
+        infomsg = 'Load YAML database...'
+        report += '%s\n' % infomsg
+        logging.info(infomsg)
         try:
             input_db=yaml.load(open(db_path), Loader=yaml.SafeLoader)
         except yaml.YAMLError as exc:
@@ -344,14 +359,18 @@ class MainGUI(QtWidgets.QMainWindow):
                     return
 
         # Load Jinja2 template
-        logging.info('Create Jinja2 Environment...')
+        infomsg = 'Create Jinja2 Environment...'
+        report += '%s\n' % infomsg
+        logging.info(infomsg)
         env = jinja2.Environment(loader = jinja2.FileSystemLoader(str(tp_path)), trim_blocks=True, lstrip_blocks=True)
         
-        logging.info('Load Jinja2 Template...')
+        infomsg = 'Load Jinja2 Template...'
+        report += '%s\n' % infomsg
+        logging.info(infomsg)
         try:
             input_tp = env.get_template(tp_name)
         except jinja2.TemplateNotFound:
-            errorText = tp_name + ': File not found\n'
+            errorText = '%s: File not found\n' % tp_name
             errorArgs = "File '%s' not found in %s\n" % (tp_name, str(tp_path))
             self.handleErrors(errorText, errorArgs)
             return
@@ -366,7 +385,9 @@ class MainGUI(QtWidgets.QMainWindow):
             return
 
         # Render the template with data and print the output
-        logging.info('Rendering templates...')
+        infomsg = 'Rendering templates...'
+        report += '%s\n' % infomsg
+        logging.info(infomsg)
         try:
             for entry in input_db:
                 result = input_tp.render(entry)
@@ -374,7 +395,9 @@ class MainGUI(QtWidgets.QMainWindow):
                 out_file = open(out_path / out_file_name, 'w')
                 out_file.write(result)
                 out_file.close()
-                logging.info("Configuration '%s' created..." % (out_file_name))
+                infomsg = "Configuration '%s' created..." % (out_file_name)
+                report += '%s\n' % infomsg
+                logging.info(infomsg)
         except ValueError as exc:
             errorText = ('An error occurred while rendering the templates\n'
                          'The YAML file must start with a list of dictionary\n\n'
@@ -382,19 +405,21 @@ class MainGUI(QtWidgets.QMainWindow):
             errorArgs = (str(traceback.format_exc()))
             self.handleErrors(errorText, errorArgs)
             return
+
+        # Final messagebox when configuration is correctly generated
         end_msg = QtWidgets.QMessageBox()
         end_msg.setIcon(QtWidgets.QMessageBox.Information)
         end_msg.setWindowTitle('Task Finished')
         end_msg.setText("\nProject '%s' completed!\n\n"
                         'The files have been generated in the folder: \n'
                         "  '%s'\n" % (self.projectEdit.text(), str(out_path)))
-        end_msg.setDetailedText('< print partial logs from last config_gen() >')
+        end_msg.setDetailedText(report)
         end_msg.setStandardButtons(QtWidgets.QMessageBox.Ok | QtWidgets.QMessageBox.Open)
         result = end_msg.exec_()
         if result == QtWidgets.QMessageBox.Open:
             self.openFile(str(out_path))
 
-def bind(func, to):
+def bind(func, to): # This is needed to select all text when click on LineEdit
     'Bind function to instance, unbind if needed'
     return types.MethodType(func.__func__ if hasattr(func, '__self__') else func, to)
 
@@ -415,4 +440,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-
