@@ -67,7 +67,7 @@ R2.txt
 
 ## NEPYH-BIN (Windows only)
 Download the binary file:
-https://github.com/cyb3rw0lf/nepyh-bin/nepyh-bin.exe
+https://github.com/cyb3rw0lf/nepyh/releases/latest
 
 
 ## NEPYH-CLI
