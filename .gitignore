@@ -1,2 +1,4 @@
 *.log
 templates/*
+dist/*
+build/*
