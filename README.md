@@ -38,8 +38,8 @@ See the sample folder for examples of input files.
 * Create a database file in YAML format (validate on http://www.yamllint.com/)
 * Create a template file in Jinja2 format
 * Run the software
-  * __Linux__ ``` python3 nepyh.py ```
-  * __Windows__ ``` py nepyh.py ```
+  * _Linux_ ``` python3 nepyh.py ```
+  * _Windows_ ``` py nepyh.py ```
 * Select database, template, project name, output extension and press "Run"
   
   ![NEPyH Screenshot](/samples/nepyh_screenshot.png)
