@@ -244,7 +244,7 @@ class MainGUI(QtWidgets.QMainWindow):
     def _gettpPath(self):
         self.templateEdit.setText(QtWidgets.QFileDialog.getOpenFileName(self, 'Select file', '.', '*.j2')[0])
 
-    def _excepthook(excType, excValue, tracebackobj):
+    def _excepthook(self, excType, excValue, tracebackobj):
         """
         Global function to catch unhandled exceptions.
         
