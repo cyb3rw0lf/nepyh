@@ -23,11 +23,6 @@
     - 1.1.1.0/24
     - 2.2.2.0/24
 - hostname: R2
-  banner: |
-    This is
-    the test
-    of a four
-    lines banner
   mgt:
     ip: 10.1.1.2
     mask: 255.255.255.255

@@ -383,15 +383,6 @@ class MainGUI(QtWidgets.QMainWindow):
                          % (exc.message, exc.filename, exc.lineno))
             self.handleErrors(errorText, errorArgs)
             return
-        except jinja2.UndefinedError as exc:
-            errorText = ('An error occurred while reading Jinja2 template\n\n'
-                         'Please correct data and retry.\n')
-            errorArgs = ('Syntax check failed:\n'
-                         ' %s '
-                         'in %s at line %d'
-                         % (exc.message, exc.filename, exc.lineno))
-            self.handleErrors(errorText, errorArgs)
-            return
 
         # Render the template with data and print the output
         infomsg = 'Rendering templates...'
@@ -412,6 +403,12 @@ class MainGUI(QtWidgets.QMainWindow):
                          'The YAML file must start with a list of dictionary\n\n'
                          'Please correct data and retry.\n')
             errorArgs = (str(traceback.format_exc()))
+            self.handleErrors(errorText, errorArgs)
+            return
+        except jinja2.UndefinedError as exc:
+            errorText = ('An error occurred while parsing Jinja2 template\n\n'
+                         'Please correct data and retry.\n')
+            errorArgs = exc.message
             self.handleErrors(errorText, errorArgs)
             return
 
