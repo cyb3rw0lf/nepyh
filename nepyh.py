@@ -325,7 +325,7 @@ class MainGUI(QtWidgets.QMainWindow):
         return str(IPNetwork(text).ip)
 
     def j2filter_ipadd(self, text, num):
-        return str(IPNetwork(text).ip.__add__(num))
+        return str(IPNetwork(text).ip.__add__(int(num)))
 
     def j2filter_network(self, text):
         return str(IPNetwork(text).network)

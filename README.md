@@ -87,7 +87,7 @@ my_ipv6: 2001:db8::85a3:7334/64
 IPV4:
 IP Address: {{ my_ipv4|ip }}
  Result: 192.168.100.1
-Add 5 IP Address: {{ my_ipv4|ipadd('5') }}
+Add 5 IP Address: {{ my_ipv4|ipadd(5) }}
  Result: 192.168.100.6
 Network Address: {{ my_ipv4|network }}
  Result: 192.168.100.0
@@ -103,7 +103,7 @@ Wildcard Mask: {{ my_ipv4|wildmask }}
 IPV6:
 IP Address: {{ my_ipv6|ip }}
  Result: 2001:db8::85a3:7334
-Add 5 IP Address: {{ my_ipv6|ipadd('5') }}
+Add 5 IP Address: {{ my_ipv6|ipadd(5) }}
  Result: 2001:db8::85a3:7339
 Network Address: {{ my_ipv6|network }}
  Result: 2001:db8::
