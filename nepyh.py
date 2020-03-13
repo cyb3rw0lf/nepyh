@@ -322,25 +322,25 @@ class MainGUI(QtWidgets.QMainWindow):
     
     # Jinja2 filters to handle IP Addresses
     def j2filter_ip(self, text):
-        return str(IPNetwork(str(text)).ip)
+        return str(IPNetwork(text).ip)
 
     def j2filter_ipadd(self, text, num):
-        return str(IPNetwork(str(text)).ip.__add__(int(num)))
+        return str(IPNetwork(text).ip.__add__(int(num)))
 
     def j2filter_network(self, text):
-        return str(IPNetwork(str(text)).network)
+        return str(IPNetwork(text).network)
 
     def j2filter_broadcast(self, text):
-        return str(IPNetwork(str(text)).broadcast)
+        return str(IPNetwork(text).broadcast)
 
     def j2filter_bitmask(self, text):
-        return str(IPNetwork(str(text)).prefixlen)
+        return str(IPNetwork(text).prefixlen)
 
     def j2filter_netmask(self, text):
-        return str(IPNetwork(str(text)).netmask)
+        return str(IPNetwork(text).netmask)
 
     def j2filter_wildmask(self, text):
-        return str(IPNetwork(str(text)).hostmask)
+        return str(IPNetwork(text).hostmask)
 
     def config_gen(self): # This function cover the config generator
         out_path = myDocuments / 'NEPyH_Outputs' / Path(self.projectEdit.text())
