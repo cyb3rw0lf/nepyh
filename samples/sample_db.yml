@@ -9,6 +9,8 @@
   mgt:
     ip: 10.1.1.1
     mask: 255.255.255.255
+  test_ip: 10.10.10.1/24
+  test_ipv6: 2001:1700:f00::1/64
   interfaces:
   - name: GigabitEthernet1/0/0
     description: Sample LAN 1 interface

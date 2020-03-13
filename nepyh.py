@@ -17,6 +17,7 @@ This code follow PEP 8 style guide and it use 4 spaces for indentation.
 
 from PyQt5 import QtCore, QtWidgets, QtGui # import PyQt5 for GUI, to install 'pip3 install PyQt5'
 from pathlib import Path
+from netaddr import IPNetwork # used for custom Jinja2 templates
 import os # import OS module to create directory
 import errno
 import sys
@@ -319,6 +320,16 @@ class MainGUI(QtWidgets.QMainWindow):
                     logging.debug(str(exc.args))
                     attempts += 1
     
+    # Jinja2 filters to handle IP Addresses
+    def j2filter_ip(self, text):
+        return str(IPNetwork(text).ip)
+
+    def j2filter_network(self, text):
+        return str(IPNetwork(text).network)
+
+    def j2filter_netmask(self, text):
+        return str(IPNetwork(text).netmask)
+
     def config_gen(self): # This function cover the config generator
         out_path = myDocuments / 'NEPyH_Outputs' / Path(self.projectEdit.text())
         db_path = self.databaseEdit.text()
@@ -363,7 +374,10 @@ class MainGUI(QtWidgets.QMainWindow):
         report += '%s\n' % infomsg
         logging.info(infomsg)
         env = jinja2.Environment(loader = jinja2.FileSystemLoader(str(tp_path)), trim_blocks=True, lstrip_blocks=True)
-        
+        env.filters['ip'] = self.j2filter_ip
+        env.filters['network'] = self.j2filter_network
+        env.filters['netmask'] = self.j2filter_netmask
+
         infomsg = 'Load Jinja2 Template...'
         report += '%s\n' % infomsg
         logging.info(infomsg)
