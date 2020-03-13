@@ -68,22 +68,27 @@ R2.txt
 ### Jinj2 Custom Filters
 The Jinja2 template support the following custom filters for IP Address management
 
-```ip``` return IP Address as string
-```ipadd``` return IP Address + the amount of IP Added as string
-```network``` return the Network Address as string
-```broadcast``` return the Wildcard Mask as string
-```bitmask``` return the Bit Mask / Prefix lenght as string
-```netmask``` return Subnet Mask as string
-```wildmask``` return the Wildcard Mask as string
+| Filter          | Usage                        | Description                                             |
+| --------------- | ---------------------------- | ------------------------------------------------------- |
+| ```ip```        | ```{{ my_ip\|ip }}```         | return IP Address as string                             |
+| ```ipadd```     | ```{{ my_ip\|ipadd(5) }}```   | return IP Address + the amount of IP Added as string    |
+| ```network```   | ```{{ my_ip\|network }}```    | return the Network Address as string                    |
+| ```broadcast``` | ```{{ my_ip\|broadcast }}```  | return the Wildcard Mask as string                      |
+| ```bitmask```   | ```{{ my_ip\|bitmask }}```    | return the Bit Mask / Prefix lenght as string           |
+| ```netmask```   | ```{{ my_ip\|netmask }}```    | return Subnet Mask as string                            |
+| ```wildmask```  | ```{{ my_ip\|wildmask }}```   | return the Wildcard Mask as string                      |
 
-Usage:
+**Example:**
+
+YAML file:
 ```YAML
 ---
 my_ipv4: 192.168.100.1/24
 my_ipv6: 2001:db8::85a3:7334/64
 ```
 
-```Jinja2
+Jinja2 file:
+```YAML
 IPV4:
 IP Address: {{ my_ipv4|ip }}
  Result: 192.168.100.1
