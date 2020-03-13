@@ -65,6 +65,59 @@ R1.txt
 R2.txt
 ```
 
+### Jinj2 Custom Filters
+The Jinja2 template support the following custom filters for IP Address management
+
+```ip``` return IP Address as string
+```ipadd``` return IP Address + the amount of IP Added as string
+```network``` return the Network Address as string
+```broadcast``` return the Wildcard Mask as string
+```bitmask``` return the Bit Mask / Prefix lenght as string
+```netmask``` return Subnet Mask as string
+```wildmask``` return the Wildcard Mask as string
+
+Usage:
+```YAML
+---
+my_ipv4: 192.168.100.1/24
+my_ipv6: 2001:db8::85a3:7334/64
+```
+
+```Jinja2
+IPV4:
+IP Address: {{ my_ipv4|ip }}
+ Result: 192.168.100.1
+Add 5 IP Address: {{ my_ipv4|ipadd('5') }}
+ Result: 192.168.100.6
+Network Address: {{ my_ipv4|network }}
+ Result: 192.168.100.0
+Broadcast Address: {{ my_ipv4|broadcast }}
+ Result: 192.168.100.255
+Bit Mask: {{ my_ipv4|bitmask }}
+ Result: 24
+Subnet Mask: {{ my_ipv4|netmask }}
+ Result: 255.255.255.0
+Wildcard Mask: {{ my_ipv4|wildmask }}
+ Result: 0.0.0.255
+
+IPV6:
+IP Address: {{ my_ipv6|ip }}
+ Result: 2001:db8::85a3:7334
+Add 5 IP Address: {{ my_ipv6|ipadd('5') }}
+ Result: 2001:db8::85a3:7339
+Network Address: {{ my_ipv6|network }}
+ Result: 2001:db8::
+Broadcast Address: {{ my_ipv6|broadcast }}
+ Result: 2001:db8::ffff:ffff:ffff:ffff
+Bit Mask: {{ my_ipv6|netmask }}
+ Result: 64
+Subnet Mask: {{ my_ipv6|bitmask }}
+ Result: ffff:ffff:ffff:ffff::
+Wildcard Mask: {{ my_ipv6|wildmask }}
+ Result: ::ffff:ffff:ffff:ffff
+```
+
+
 ## NEPYH-BIN (Windows only)
 Download the binary file:
 https://github.com/cyb3rw0lf/nepyh/releases/latest

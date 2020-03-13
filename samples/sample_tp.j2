@@ -3,18 +3,6 @@
 #
 hostname {{hostname}}
 #
-{% if test_ip is defined %}
-Test ip: {{ test_ip|ip }}
-Test mask: {{ test_ip|netmask }}
-Test network: {{ test_ip|network }}
-{% endif %}
-#
-{% if test_ipv6 is defined %}
-Test v6ip: {{ test_ipv6|ip }}
-Test v6mask: {{ test_ipv6|netmask }}
-Test v6network: {{ test_ipv6|network }}
-{% endif %}
-#
 {% if banner is defined %}
 header login information $
 {{banner}}$

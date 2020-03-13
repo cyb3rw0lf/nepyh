@@ -1,0 +1,19 @@
+{# This is an example of template in Jinja2 format to be user with NEPYH for IP Address management #}
+
+IPV4:
+ IP Address: {{ my_ipv4|ip }}
+ Add 5 IP Address: {{ my_ipv4|ipadd(5) }}
+ Network Address: {{ my_ipv4|network }}
+ Broadcast Address: {{ my_ipv4|broadcast }}
+ Bit Mask: {{ my_ipv4|bitmask }}
+ Subnet Mask: {{ my_ipv4|netmask }}
+ Wildcard Mask: {{ my_ipv4|wildmask }}
+
+IPV6:
+ IP Address: {{ my_ipv6|ip }}
+ Add 5 IP Address: {{ my_ipv6|ipadd(5) }}
+ Network Address: {{ my_ipv6|network }}
+ Broadcast Address: {{ my_ipv6|broadcast }}
+ Bit Mask: {{ my_ipv6|bitmask }}
+ Subnet Mask: {{ my_ipv6|netmask }}
+ Wildcard Mask: {{ my_ipv6|wildmask }}

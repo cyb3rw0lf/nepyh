@@ -324,11 +324,23 @@ class MainGUI(QtWidgets.QMainWindow):
     def j2filter_ip(self, text):
         return str(IPNetwork(text).ip)
 
+    def j2filter_ipadd(self, text, num):
+        return str(IPNetwork(text).ip.__add__(num))
+
     def j2filter_network(self, text):
         return str(IPNetwork(text).network)
 
+    def j2filter_broadcast(self, text):
+        return str(IPNetwork(text).broadcast)
+
+    def j2filter_bitmask(self, text):
+        return str(IPNetwork(text).prefixlen)
+
     def j2filter_netmask(self, text):
         return str(IPNetwork(text).netmask)
+
+    def j2filter_wildmask(self, text):
+        return str(IPNetwork(text).hostmask)
 
     def config_gen(self): # This function cover the config generator
         out_path = myDocuments / 'NEPyH_Outputs' / Path(self.projectEdit.text())
@@ -375,8 +387,12 @@ class MainGUI(QtWidgets.QMainWindow):
         logging.info(infomsg)
         env = jinja2.Environment(loader = jinja2.FileSystemLoader(str(tp_path)), trim_blocks=True, lstrip_blocks=True)
         env.filters['ip'] = self.j2filter_ip
+        env.filters['ipadd'] = self.j2filter_ipadd
         env.filters['network'] = self.j2filter_network
+        env.filters['broadcast'] = self.j2filter_broadcast
+        env.filters['bitmask'] = self.j2filter_bitmask
         env.filters['netmask'] = self.j2filter_netmask
+        env.filters['wildmask'] = self.j2filter_wildmask
 
         infomsg = 'Load Jinja2 Template...'
         report += '%s\n' % infomsg
