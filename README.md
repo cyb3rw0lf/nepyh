@@ -65,7 +65,7 @@ R1.txt
 R2.txt
 ```
 
-### Jinj2 Custom Filters
+### Jinja2 Custom Filters
 The Jinja2 template support the following custom filters for IP Address management
 
 | Filter          | Usage                        | Description                                             |
