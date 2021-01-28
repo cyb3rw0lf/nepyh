@@ -123,11 +123,4 @@ Wildcard Mask: {{ my_ipv6|wildmask }}
 ```
 
 
-## NEPYH-BIN (Windows only)
-Download the binary file:
-https://github.com/cyb3rw0lf/nepyh/releases/latest
-
-
-## NEPYH-CLI
-Command line version available here: https://github.com/cyb3rw0lf/nepyh-cli
 
