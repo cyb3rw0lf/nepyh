@@ -4,7 +4,7 @@ NEPYH is a python application with GUI which takes as input a database (in YAML 
 
 It can also be used for other things such as generate SecureCRT sessions files
 
-![NEPyH Workflow](/asset/nepyh_workflow.png)
+![NEPyH Workflow](/assets/nepyh_workflow.png)
 
 
 ## NEPYH
