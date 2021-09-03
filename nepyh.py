@@ -66,12 +66,65 @@ elif platform.system() == 'Windows':    # Windows
 else:                                   # linux variants
     myDocuments = script_path
 
-# GUI
-class MainGUI(QtWidgets.QMainWindow):
 
-    ###############################
-    ##     START of GUI code     ##
-    ###############################
+###############################
+##     START of GUI code     ##
+###############################
+
+# Drag and Drop filename to QLineEdit
+class DragDropQLineEdit(QtWidgets.QLineEdit):
+    def __init__(self, title, parent, fileType):
+        super().__init__(title, parent)
+        self.fileType = fileType
+        self.setAcceptDrops(True)
+
+    def validFile(self, fileName):
+        # Validate YAML file
+        if self.fileType == 'YAML':
+            try:
+                # Load the file as YAML
+                yaml_file=yaml.load(open(fileName), Loader=yaml.SafeLoader)
+                return True
+            except:
+                return False
+
+        # Validate JINJA file
+        elif self.fileType == 'JINJA':
+            try:
+                # Load the file as Jinja template
+                env = jinja2.Environment()
+                with open(fileName) as template:
+                    env.parse(template.read())
+                
+                # YAML files can also be loaded as Jinja template without errors
+                # try to understand if the file extension is of a YAML file
+                root, ext = os.path.splitext(fileName)
+                if ext.lower() in ['.yaml', '.yml']:
+                    return False
+                else:
+                    return True
+
+            except:
+                return False
+
+    def dragEnterEvent(self, event):
+        if event.mimeData().hasUrls():
+            event.accept()
+        else:
+            event.ignore()
+
+    def dropEvent(self, event):
+        files = []
+        for url in event.mimeData().urls():
+            files.append(url.toLocalFile())
+        fileName = files[0]
+        if self.validFile(fileName):
+            self.setText(fileName)
+        else:
+            self.setText('< File not valid >')
+
+# Main GUI
+class MainGUI(QtWidgets.QMainWindow):
 
     def __init__(self):
         super(MainGUI, self).__init__()
@@ -147,14 +200,14 @@ class MainGUI(QtWidgets.QMainWindow):
         self.projectLb = QtWidgets.QLabel('Project name:')
         self.fileExtLb = QtWidgets.QLabel('Output file extension:')
         # Text lines
-        self.databaseEdit = QtWidgets.QLineEdit()
-        self.templateEdit = QtWidgets.QLineEdit()
+        self.databaseEdit = DragDropQLineEdit('< Drag & Drop a YAML file or Browse >', self, 'YAML')
+        self.databaseEdit.focusInEvent = bind(lambda w, e: QtCore.QTimer.singleShot(0, w.selectAll), self.databaseEdit) # This is needed to select all text when click on LineEdit
+        self.templateEdit = DragDropQLineEdit('< Drag & Drop a Jinja2 file or Browse >', self, 'JINJA')
+        self.templateEdit.focusInEvent = bind(lambda w, e: QtCore.QTimer.singleShot(0, w.selectAll), self.templateEdit) # This is needed to select all text when click on LineEdit
         self.projectEdit = QtWidgets.QLineEdit(defFolder)
-        # This is needed to select all text when click on LineEdit
-        self.projectEdit.focusInEvent = bind(lambda w, e: QtCore.QTimer.singleShot(0, w.selectAll), self.projectEdit)
+        self.projectEdit.focusInEvent = bind(lambda w, e: QtCore.QTimer.singleShot(0, w.selectAll), self.projectEdit) # This is needed to select all text when click on LineEdit
         self.fileExtEdit = QtWidgets.QLineEdit('.txt')
-        # This is needed to select all text when click on LineEdit
-        self.fileExtEdit.focusInEvent = bind(lambda w, e: QtCore.QTimer.singleShot(0, w.selectAll), self.fileExtEdit)
+        self.fileExtEdit.focusInEvent = bind(lambda w, e: QtCore.QTimer.singleShot(0, w.selectAll), self.fileExtEdit) # This is needed to select all text when click on LineEdit
         # Buttons
         self.databaseBtn = QtWidgets.QPushButton('Browse')
         self.databaseBtn.clicked.connect(self._getdbPath)
