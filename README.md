@@ -41,10 +41,11 @@ See the sample folder for examples of input files.
 * Create a template file in Jinja2 format
 * Run the software
   * _Linux_ ``` python3 nepyh.py ```
+  * _macOS_ ``` python3 nepyh.py ```
   * _Windows_ ``` py nepyh.py ```
 * Select database, template, project name, output extension and press "Run"
   
-  ![NEPyH Screenshot](/samples/nepyh_screenshot.png)
+  ![NEPyH Screenshot macOS](/assets/nepyh_screenshot_macos.png)
 
 
 ### YAML restrictions
