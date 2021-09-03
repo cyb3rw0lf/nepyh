@@ -2,5 +2,6 @@
 templates/*
 dist/*
 build/*
+NEPyH_Outputs/*
 **/.DS_Store
 .DS_Store
