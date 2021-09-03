@@ -15,7 +15,7 @@ The filename is the value of the first dictionary found in the list.
 This code follow PEP 8 style guide and it use 4 spaces for indentation.
 """
 
-from PyQt5 import QtCore, QtWidgets, QtGui # import PyQt5 for GUI, to install 'pip3 install PyQt5'
+from PyQt6 import QtCore, QtWidgets, QtGui # import PyQt5 for GUI, to install 'pip3 install PyQt5'
 from pathlib import Path
 from netaddr import IPNetwork # used for custom Jinja2 templates
 import os # import OS module to create directory
@@ -37,7 +37,7 @@ __author__ = 'Emanuele Rossi'
 __credits__ = ['cyb3rw0lf']
 __appName__ = 'N.E.Py.H. - Network Engineer Python Helper'
 __license__ = 'MIT'
-__version__ = 'v1.0.1-beta'
+__version__ = 'v1.0.2-beta'
 __status__ = 'Production'
 __maintainer__ = 'cyb3rw0lf'
 __homepage__ = 'https://github.com/cyb3rw0lf/nepyh'
@@ -45,11 +45,11 @@ __email__ = 'cyb3rw0lf@protonmail.com'
 __issues__ = 'https://github.com/cyb3rw0lf/nepyh/issues'
 __usage__ = ('Chose a Database file in YAML format and a Template file in Jinja2 format.\n'
              "It's mandatory that YAML file start with a list.")
-__logfile__ = 'logfile.log'
+__logfile__ = 'nepyh.log'
 __YAMLlint__ = 'http://www.yamllint.com/'
 
 script_path = Path(__file__).resolve().parent
-__icon__ = str(script_path / 'assets' / 'nepyh_icon.png')
+__icon__ = os.path.join(script_path, 'assets', 'nepyh_icon.png')
 defFolder = time.strftime('%Y%m%d-%H%M%S')
 
 
@@ -81,33 +81,33 @@ class MainGUI(QtWidgets.QMainWindow):
         #self.setCentralWidget(textEdit)
 
         # Menubar Quit action:
-        quitAction = QtWidgets.QAction('&Quit', self)
+        quitAction = QtGui.QAction('&Quit', self)
         quitAction.setShortcut('Ctrl+Q')
         quitAction.setStatusTip('Exit application')
-        quitAction.triggered.connect(QtWidgets.qApp.quit)
+        quitAction.triggered.connect(QtWidgets.QApplication.quit)
 
         # Menubar Documentation action:
-        documentationAction = QtWidgets.QAction('&Documentation', self)
+        documentationAction = QtGui.QAction('&Documentation', self)
         documentationAction.setShortcut('F1')
         documentationAction.setStatusTip('Help and guidelines on NEPyH')
         documentationAction.triggered.connect(lambda: QtGui.QDesktopServices.openUrl(QtCore.QUrl(__homepage__)))
 
         # Menubar YAML lint action:
-        yamllintAction = QtWidgets.QAction('&YAML lint', self)
+        yamllintAction = QtGui.QAction('&YAML lint', self)
         yamllintAction.setStatusTip('Online YAML validation tool')
         yamllintAction.triggered.connect(lambda: QtGui.QDesktopServices.openUrl(QtCore.QUrl(__YAMLlint__)))
         
         # Menubar Issues action:
-        issuesAction = QtWidgets.QAction('&Issues', self)
+        issuesAction = QtGui.QAction('&Issues', self)
         issuesAction.setStatusTip('Report bugs and issues')
         issuesAction.triggered.connect(lambda: QtGui.QDesktopServices.openUrl(QtCore.QUrl(__issues__)))
 
         # Menubar SW Upgrade action:
-        swupgradeAction = QtWidgets.QAction('&SW Upgrade', self)
+        swupgradeAction = QtGui.QAction('&SW Upgrade', self)
         swupgradeAction.setStatusTip('Check for new software versions')
 
         # Menubar About action:
-        aboutAction = QtWidgets.QAction('&About', self)
+        aboutAction = QtGui.QAction('&About', self)
         aboutAction.setStatusTip('Information about NEPyH')
         aboutAction.triggered.connect(lambda: self.about())
 
@@ -204,19 +204,12 @@ class MainGUI(QtWidgets.QMainWindow):
 
     def center(self): # [GUI] Move the main window to the center of the screen
         qr = self.frameGeometry()
-        cp = QtWidgets.QDesktopWidget().availableGeometry().center()
+        cp = QtGui.QGuiApplication.primaryScreen().availableGeometry().center()
         qr.moveCenter(cp)
         self.move(qr.topLeft())
 
     def closeEvent(self, event): # [GUI] The main window is closed
         event.accept()
-        # Ask for exit confirmation when click on 'x' button 
-        # reply = QtWidgets.QMessageBox.question(self, 'Message',
-        #      'Are you sure to quit?', QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No, QtWidgets.QMessageBox.No)
-        # if reply == QtWidgets.QMessageBox.Yes:
-        #     event.accept()
-        # else:
-        #     event.ignore()
 
     def about(self): # [GUI] Ab out window
         aboutMsg = QtWidgets.QMessageBox()
@@ -228,8 +221,8 @@ class MainGUI(QtWidgets.QMainWindow):
                          '        License:  %s\n\n'
                          '        %s' % (__appName__, __author__, __version__, __license__, __homepage__)
                         )
-        aboutMsg.setStandardButtons(QtWidgets.QMessageBox.Ok)
-        aboutMsg.exec_()
+        aboutMsg.setStandardButtons(QtWidgets.QMessageBox.StandardButton.Ok)
+        aboutMsg.exec()
     
     ###############################
     ##      END of GUI code      ##
@@ -271,22 +264,22 @@ class MainGUI(QtWidgets.QMainWindow):
         logging.error(infoVersion + msg)
         errorbox = QtWidgets.QMessageBox()
         errorbox.setContentsMargins(10, 0, 40, 0)
-        errorbox.setIcon(QtWidgets.QMessageBox.Critical)
+        errorbox.setIcon(QtWidgets.QMessageBox.Icon.Critical)
         errorbox.setWindowTitle('Unhandled Error')
         errorbox.setText(notice)
         errorbox.setDetailedText(str(infoVersion) + str(msg))
-        errorbox.exec_()
+        errorbox.exec()
 
     def handleErrors(self, errorText, errorArgs):
         logging.error(errorText + errorArgs)
         err_msg = QtWidgets.QMessageBox()
         err_msg.setContentsMargins(10, 0, 40, 0)
-        err_msg.setIcon(QtWidgets.QMessageBox.Critical)
+        err_msg.setIcon(QtWidgets.QMessageBox.Icon.Critical)
         err_msg.setWindowTitle('Error')
         err_msg.setText(errorText)
         err_msg.setDetailedText(errorArgs)
-        err_msg.setStandardButtons(QtWidgets.QMessageBox.Ok)
-        err_msg.exec_()
+        err_msg.setStandardButtons(QtWidgets.QMessageBox.StandardButton.Ok)
+        err_msg.exec()
 
     def openFile(self, filepath):
         if platform.system() == 'Darwin':       # macOS
@@ -306,8 +299,8 @@ class MainGUI(QtWidgets.QMainWindow):
                 if exc.errno == errno.EEXIST:
                     reply = QtWidgets.QMessageBox.question(self, 'Warning',
                             'Project folder already exists and will be overwritten, continue?',
-                            QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No, QtWidgets.QMessageBox.No)
-                    if reply == QtWidgets.QMessageBox.Yes:
+                            QtWidgets.QMessageBox.StandardButton.Yes | QtWidgets.QMessageBox.StandardButton.No, QtWidgets.QMessageBox.StandardButton.No)
+                    if reply == QtWidgets.QMessageBox.StandardButton.Yes:
                         shutil.rmtree(out_path)
                     else:
                         return False
@@ -343,7 +336,7 @@ class MainGUI(QtWidgets.QMainWindow):
         return str(IPNetwork(text).hostmask)
 
     def config_gen(self): # This function cover the config generator
-        out_path = myDocuments / 'NEPyH_Outputs' / Path(self.projectEdit.text())
+        out_path = os.path.join(myDocuments, 'NEPyH_Outputs', Path(self.projectEdit.text()))
         db_path = self.databaseEdit.text()
         tp_path = Path(self.templateEdit.text()).parent
         tp_name = Path(self.templateEdit.text()).name
@@ -422,7 +415,7 @@ class MainGUI(QtWidgets.QMainWindow):
             for entry in input_db:
                 result = input_tp.render(entry)
                 out_file_name=next(iter(entry.values())) + fileExt
-                out_file = open(out_path / out_file_name, 'w')
+                out_file = open(os.path.join(out_path,out_file_name), 'w')
                 out_file.write(result)
                 out_file.close()
                 infomsg = "Configuration '%s' created..." % (out_file_name)
@@ -444,15 +437,15 @@ class MainGUI(QtWidgets.QMainWindow):
 
         # Final messagebox when configuration is correctly generated
         end_msg = QtWidgets.QMessageBox()
-        end_msg.setIcon(QtWidgets.QMessageBox.Information)
+        end_msg.setIcon(QtWidgets.QMessageBox.Icon.Information)
         end_msg.setWindowTitle('Task Finished')
         end_msg.setText("\nProject '%s' completed!\n\n"
                         'The files have been generated in the folder: \n'
                         "  '%s'\n" % (self.projectEdit.text(), str(out_path)))
         end_msg.setDetailedText(report)
-        end_msg.setStandardButtons(QtWidgets.QMessageBox.Ok | QtWidgets.QMessageBox.Open)
-        result = end_msg.exec_()
-        if result == QtWidgets.QMessageBox.Open:
+        end_msg.setStandardButtons(QtWidgets.QMessageBox.StandardButton.Ok | QtWidgets.QMessageBox.StandardButton.Open)
+        result = end_msg.exec()
+        if result == QtWidgets.QMessageBox.StandardButton.Open:
             self.openFile(str(out_path))
 
 def bind(func, to): # This is needed to select all text when click on LineEdit
@@ -470,7 +463,7 @@ def main():
     logging.info('Session Started')
     app = QtWidgets.QApplication(sys.argv)
     mainWindow = MainGUI()
-    status = app.exec_()
+    status = app.exec()
     logging.info('Session Finished')
     sys.exit(status)
 

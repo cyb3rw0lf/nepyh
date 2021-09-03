@@ -1,4 +1,4 @@
-PyQt5
+PyQt6
 Jinja2
 PyYAML
 netaddr

@@ -1,0 +1,18 @@
+
+IPV4:
+ IP Address: 192.168.100.1
+ Add 5 IP Address: 192.168.100.6
+ Network Address: 192.168.100.0
+ Broadcast Address: 192.168.100.255
+ Bit Mask: 24
+ Subnet Mask: 255.255.255.0
+ Wildcard Mask: 0.0.0.255
+
+IPV6:
+ IP Address: 2001:db8::85a3:7334
+ Add 5 IP Address: 2001:db8::85a3:7339
+ Network Address: 2001:db8::
+ Broadcast Address: 2001:db8::ffff:ffff:ffff:ffff
+ Bit Mask: 64
+ Subnet Mask: ffff:ffff:ffff:ffff::
+ Wildcard Mask: ::ffff:ffff:ffff:ffff
