@@ -78,35 +78,6 @@ class DragDropQLineEdit(QtWidgets.QLineEdit):
         self.fileType = fileType
         self.setAcceptDrops(True)
 
-    def validFile(self, fileName):
-        # Validate YAML file
-        if self.fileType == 'YAML':
-            try:
-                # Load the file as YAML
-                yaml_file=yaml.load(open(fileName), Loader=yaml.SafeLoader)
-                return True
-            except:
-                return False
-
-        # Validate JINJA file
-        elif self.fileType == 'JINJA':
-            try:
-                # Load the file as Jinja template
-                env = jinja2.Environment()
-                with open(fileName) as template:
-                    env.parse(template.read())
-                
-                # YAML files can also be loaded as Jinja template without errors
-                # try to understand if the file extension is of a YAML file
-                root, ext = os.path.splitext(fileName)
-                if ext.lower() in ['.yaml', '.yml']:
-                    return False
-                else:
-                    return True
-
-            except:
-                return False
-
     def dragEnterEvent(self, event):
         if event.mimeData().hasUrls():
             event.accept()
@@ -117,11 +88,7 @@ class DragDropQLineEdit(QtWidgets.QLineEdit):
         files = []
         for url in event.mimeData().urls():
             files.append(url.toLocalFile())
-        fileName = files[0]
-        if self.validFile(fileName):
-            self.setText(fileName)
-        else:
-            self.setText('< File not valid >')
+        setValidFile(self.fileType, files[0], self)
 
 # Main GUI
 class MainGUI(QtWidgets.QMainWindow):
@@ -210,9 +177,9 @@ class MainGUI(QtWidgets.QMainWindow):
         self.fileExtEdit.focusInEvent = bind(lambda w, e: QtCore.QTimer.singleShot(0, w.selectAll), self.fileExtEdit) # This is needed to select all text when click on LineEdit
         # Buttons
         self.databaseBtn = QtWidgets.QPushButton('Browse')
-        self.databaseBtn.clicked.connect(self._getdbPath)
+        self.databaseBtn.clicked.connect(lambda: self._getFilePath(self.databaseEdit))
         self.templateBtn = QtWidgets.QPushButton('Browse')
-        self.templateBtn.clicked.connect(self._gettpPath)
+        self.templateBtn.clicked.connect(lambda: self._getFilePath(self.templateEdit))
         self.projectBtn = QtWidgets.QPushButton('Update')
         self.projectBtn.clicked.connect(self._updateDefFolder)
         self.cfgenBtn = QtWidgets.QPushButton('Run')
@@ -285,11 +252,15 @@ class MainGUI(QtWidgets.QMainWindow):
         defFolder = time.strftime('%Y%m%d-%H%M%S')
         self.projectEdit.setText(defFolder)
 
-    def _getdbPath(self):
-        self.databaseEdit.setText(QtWidgets.QFileDialog.getOpenFileName(self, 'Select file', '.', '*.yml')[0])
+    def _getFilePath(self, textField):
+        fileName = ''
+        if textField.fileType == 'YAML':
+            fileName = QtWidgets.QFileDialog.getOpenFileName(self, 'Select file', '.', '*.yml *.yaml')[0]
 
-    def _gettpPath(self):
-        self.templateEdit.setText(QtWidgets.QFileDialog.getOpenFileName(self, 'Select file', '.', '*.j2')[0])
+        if textField.fileType == 'JINJA':
+            fileName = QtWidgets.QFileDialog.getOpenFileName(self, 'Select file', '.', '*.j2 *.jinja')[0]
+        
+        setValidFile(textField.fileType, fileName, textField)
 
     def _excepthook(self, excType, excValue, tracebackobj):
         """
@@ -500,6 +471,38 @@ class MainGUI(QtWidgets.QMainWindow):
         result = end_msg.exec()
         if result == QtWidgets.QMessageBox.StandardButton.Open:
             self.openFile(str(out_path))
+
+def setValidFile(fileType, fileName, textField):
+    # Set error message for invalid file
+    errorMsg = '< Not a valid %s file >' % fileType
+
+    # Validate YAML file
+    if fileType == 'YAML':
+        try:
+            # Load the file as YAML
+            yaml.load(open(fileName), Loader=yaml.SafeLoader)
+            textField.setText(fileName)
+        except:
+            textField.setText(errorMsg)
+
+    # Validate JINJA file
+    elif fileType == 'JINJA':
+        try:
+            # Load the file as Jinja template
+            env = jinja2.Environment()
+            with open(fileName) as template:
+                env.parse(template.read())
+            
+            # YAML files can also be loaded as Jinja template without errors
+            # try to understand if the file extension is of a YAML file
+            root, ext = os.path.splitext(fileName)
+            if ext.lower() in ['.yaml', '.yml']:
+                textField.setText(errorMsg)
+            else:
+                textField.setText(fileName)
+        except:
+            textField.setText(errorMsg)
+        
 
 def bind(func, to): # This is needed to select all text when click on LineEdit
     'Bind function to instance, unbind if needed'
