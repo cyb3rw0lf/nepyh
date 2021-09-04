@@ -45,7 +45,7 @@ __email__ = 'w0lf.code@pm.me'
 __issues__ = 'https://github.com/cyb3rw0lf/nepyh/issues'
 __usage__ = ('Chose a Database file in YAML format and a Template file in Jinja2 format.\n'
              "It's mandatory that YAML file start with a list.")
-__logfile__ = 'nepyh.log'
+__logfile__ = Path(__file__).stem + '.log'
 __YAMLlint__ = 'http://www.yamllint.com/'
 
 script_path = Path(__file__).resolve().parent
