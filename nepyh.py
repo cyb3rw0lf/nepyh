@@ -41,7 +41,7 @@ __version__ = 'v1.0.2-beta'
 __status__ = 'Production'
 __maintainer__ = 'cyb3rw0lf'
 __homepage__ = 'https://github.com/cyb3rw0lf/nepyh'
-__email__ = 'cyb3rw0lf@protonmail.com'
+__email__ = 'w0lf.code@pm.me'
 __issues__ = 'https://github.com/cyb3rw0lf/nepyh/issues'
 __usage__ = ('Chose a Database file in YAML format and a Template file in Jinja2 format.\n'
              "It's mandatory that YAML file start with a list.")
