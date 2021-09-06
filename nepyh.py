@@ -15,10 +15,10 @@ The filename is the value of the first dictionary found in the list.
 This code follow PEP 8 style guide and it use 4 spaces for indentation.
 """
 
-from PyQt6 import QtCore, QtWidgets, QtGui # import PyQt5 for GUI, to install 'pip3 install PyQt5'
+from PyQt6 import QtCore, QtWidgets, QtGui  # import PyQt5 for GUI, to install 'pip3 install PyQt5'
 from pathlib import Path
-from netaddr import IPNetwork # used for custom Jinja2 templates
-import os # import OS module to create directory
+from netaddr import IPNetwork  # used for custom Jinja2 templates
+import os  # import OS module to create directory
 import errno
 import sys
 import time
@@ -91,6 +91,8 @@ class DragDropQLineEdit(QtWidgets.QLineEdit):
         setValidFile(self.fileType, files[0], self)
 
 # Main GUI
+
+
 class MainGUI(QtWidgets.QMainWindow):
 
     def __init__(self):
@@ -98,7 +100,7 @@ class MainGUI(QtWidgets.QMainWindow):
 
         # Create empty text box
         #textEdit = QtWidgets.QTextEdit()
-        #self.setCentralWidget(textEdit)
+        # self.setCentralWidget(textEdit)
 
         # Menubar Quit action:
         quitAction = QtGui.QAction('&Quit', self)
@@ -116,7 +118,7 @@ class MainGUI(QtWidgets.QMainWindow):
         yamllintAction = QtGui.QAction('&YAML lint', self)
         yamllintAction.setStatusTip('Online YAML validation tool')
         yamllintAction.triggered.connect(lambda: QtGui.QDesktopServices.openUrl(QtCore.QUrl(__YAMLlint__)))
-        
+
         # Menubar Issues action:
         issuesAction = QtGui.QAction('&Issues', self)
         issuesAction.setStatusTip('Report bugs and issues')
@@ -151,7 +153,7 @@ class MainGUI(QtWidgets.QMainWindow):
 
         # Create a toolbar
         #toolbar = self.addToolBar('CFG Gen')
-        #toolbar.addAction(changeLayoutCFG)
+        # toolbar.addAction(changeLayoutCFG)
         #toolbar = self.addToolBar('Shut / No Shut')
 
         # Create a central Widgets
@@ -168,13 +170,21 @@ class MainGUI(QtWidgets.QMainWindow):
         self.fileExtLb = QtWidgets.QLabel('Output file extension:')
         # Text lines
         self.databaseEdit = DragDropQLineEdit('< Drag & Drop a YAML file or Browse >', self, 'YAML')
-        self.databaseEdit.focusInEvent = bind(lambda w, e: QtCore.QTimer.singleShot(0, w.selectAll), self.databaseEdit) # This is needed to select all text when click on LineEdit
+        self.databaseEdit.focusInEvent = bind(
+            lambda w, e: QtCore.QTimer.singleShot(0, w.selectAll),
+            self.databaseEdit)  # This is needed to select all text when click on LineEdit
         self.templateEdit = DragDropQLineEdit('< Drag & Drop a Jinja2 file or Browse >', self, 'JINJA')
-        self.templateEdit.focusInEvent = bind(lambda w, e: QtCore.QTimer.singleShot(0, w.selectAll), self.templateEdit) # This is needed to select all text when click on LineEdit
+        self.templateEdit.focusInEvent = bind(
+            lambda w, e: QtCore.QTimer.singleShot(0, w.selectAll),
+            self.templateEdit)  # This is needed to select all text when click on LineEdit
         self.projectEdit = QtWidgets.QLineEdit(defFolder)
-        self.projectEdit.focusInEvent = bind(lambda w, e: QtCore.QTimer.singleShot(0, w.selectAll), self.projectEdit) # This is needed to select all text when click on LineEdit
+        self.projectEdit.focusInEvent = bind(
+            lambda w, e: QtCore.QTimer.singleShot(0, w.selectAll),
+            self.projectEdit)  # This is needed to select all text when click on LineEdit
         self.fileExtEdit = QtWidgets.QLineEdit('.txt')
-        self.fileExtEdit.focusInEvent = bind(lambda w, e: QtCore.QTimer.singleShot(0, w.selectAll), self.fileExtEdit) # This is needed to select all text when click on LineEdit
+        self.fileExtEdit.focusInEvent = bind(
+            lambda w, e: QtCore.QTimer.singleShot(0, w.selectAll),
+            self.fileExtEdit)  # This is needed to select all text when click on LineEdit
         # Buttons
         self.databaseBtn = QtWidgets.QPushButton('Browse')
         self.databaseBtn.clicked.connect(lambda: self._getFilePath(self.databaseEdit))
@@ -206,14 +216,14 @@ class MainGUI(QtWidgets.QMainWindow):
         cfgenLayout.addWidget(self.cfgenBtn, 4, 2)
 
         # Set the default Layout
-        #centralWidget.setLayout(centralLayout)
+        # centralWidget.setLayout(centralLayout)
         centralWidget.setLayout(cfgenLayout)
 
         # Set the Widget
         self.setCentralWidget(centralWidget)
 
         # Set main windows size, position, title and icons
-        self.resize(600,10)
+        self.resize(600, 10)
         self.center()
         self.setWindowTitle(__appName__)
         self.setWindowIcon(QtGui.QIcon(__icon__))
@@ -222,28 +232,28 @@ class MainGUI(QtWidgets.QMainWindow):
         # Override system excepthook to show error within the GUI
         sys.excepthook = self._excepthook
 
-    def center(self): # [GUI] Move the main window to the center of the screen
+    def center(self):  # [GUI] Move the main window to the center of the screen
         qr = self.frameGeometry()
         cp = QtGui.QGuiApplication.primaryScreen().availableGeometry().center()
         qr.moveCenter(cp)
         self.move(qr.topLeft())
 
-    def closeEvent(self, event): # [GUI] The main window is closed
+    def closeEvent(self, event):  # [GUI] The main window is closed
         event.accept()
 
-    def about(self): # [GUI] Ab out window
+    def about(self):  # [GUI] Ab out window
         aboutMsg = QtWidgets.QMessageBox()
         aboutMsg.setContentsMargins(10, 0, 40, 0)
         aboutMsg.setWindowTitle('About')
         aboutMsg.setText('\n   %s\n\n'
-                         '        Author: %s\n' 
-                         '        Version: %s\n' 
+                         '        Author: %s\n'
+                         '        Version: %s\n'
                          '        License:  %s\n\n'
                          '        %s' % (__appName__, __author__, __version__, __license__, __homepage__)
-                        )
+                         )
         aboutMsg.setStandardButtons(QtWidgets.QMessageBox.StandardButton.Ok)
         aboutMsg.exec()
-    
+
     ###############################
     ##      END of GUI code      ##
     ###############################
@@ -259,25 +269,25 @@ class MainGUI(QtWidgets.QMainWindow):
 
         if textField.fileType == 'JINJA':
             fileName = QtWidgets.QFileDialog.getOpenFileName(self, 'Select file', '.', '*.j2 *.jinja')[0]
-        
+
         setValidFile(textField.fileType, fileName, textField)
 
     def _excepthook(self, excType, excValue, tracebackobj):
         """
         Global function to catch unhandled exceptions.
-        
+
         @param excType exception type
         @param excValue exception value
         @param tracebackobj traceback object
         """
         infoVersion = 'Version: %s \n' % __version__
         separator = '-' * 80
-        notice = ('An unhandled exception occurred.\n' + 
-                 'Please report the problem via email to <%s>\n' 
-                 'A log has been written to %s\n\n'
-                 'Expand for more details:') % (__email__, __logfile__)
+        notice = ('An unhandled exception occurred.\n' +
+                  'Please report the problem via email to <%s>\n'
+                  'A log has been written to %s\n\n'
+                  'Expand for more details:') % (__email__, __logfile__)
         timeString = time.strftime("%Y-%m-%d, %H:%M:%S")
-        
+
         tbinfofile = io.StringIO()
         traceback.print_tb(tracebackobj, None, tbinfofile)
         tbinfofile.seek(0)
@@ -313,17 +323,17 @@ class MainGUI(QtWidgets.QMainWindow):
         else:                                   # linux variants
             subprocess.call(('xdg-open', filepath))
 
-    def checkdir(self, out_path): # This function will check if the destination folder already exist and create one if not
+    def checkdir(self, out_path):  # This function will check if the destination folder already exist and create one if not
         attempts = 0
-        while attempts < 3: # Try multiple time to fix when file is already opened
+        while attempts < 3:  # Try multiple time to fix when file is already opened
             try:
                 os.makedirs(out_path)
                 return True
             except OSError as exc:
                 if exc.errno == errno.EEXIST:
-                    reply = QtWidgets.QMessageBox.question(self, 'Warning',
-                            'Project folder already exists and will be overwritten, continue?',
-                            QtWidgets.QMessageBox.StandardButton.Yes | QtWidgets.QMessageBox.StandardButton.No, QtWidgets.QMessageBox.StandardButton.No)
+                    reply = QtWidgets.QMessageBox.question(
+                        self, 'Warning', 'Project folder already exists and will be overwritten, continue?', QtWidgets.QMessageBox.StandardButton.Yes
+                        | QtWidgets.QMessageBox.StandardButton.No, QtWidgets.QMessageBox.StandardButton.No)
                     if reply == QtWidgets.QMessageBox.StandardButton.Yes:
                         shutil.rmtree(out_path)
                     else:
@@ -336,7 +346,7 @@ class MainGUI(QtWidgets.QMainWindow):
                 else:
                     logging.debug(str(exc.args))
                     attempts += 1
-    
+
     # Jinja2 filters to handle IP Addresses
     def j2filter_ip(self, text):
         return str(IPNetwork(text).ip)
@@ -359,7 +369,7 @@ class MainGUI(QtWidgets.QMainWindow):
     def j2filter_wildmask(self, text):
         return str(IPNetwork(text).hostmask)
 
-    def config_gen(self): # This function cover the config generator
+    def config_gen(self):  # This function cover the config generator
         out_path = os.path.join(myDocuments, 'NEPyH_Outputs', Path(self.projectEdit.text()))
         db_path = self.databaseEdit.text()
         tp_path = Path(self.templateEdit.text()).parent
@@ -368,15 +378,15 @@ class MainGUI(QtWidgets.QMainWindow):
 
         if self.checkdir(out_path) == False:
             return
-        
-        report = '' # Initialize final report to the user for each config_gen() cycle
+
+        report = ''  # Initialize final report to the user for each config_gen() cycle
 
         # Load data from YAML into Python dictionary
         infomsg = 'Load YAML database...'
         report += '%s\n' % infomsg
         logging.info(infomsg)
         try:
-            input_db=yaml.load(open(db_path), Loader=yaml.SafeLoader)
+            input_db = yaml.load(open(db_path), Loader=yaml.SafeLoader)
         except yaml.YAMLError as exc:
             errorText = ('An error occurred while parsing YAML file\n\n'
                          'Please correct data and retry.\n')
@@ -386,7 +396,7 @@ class MainGUI(QtWidgets.QMainWindow):
                                  '%s\n'
                                  '%s %s\n\n'
                                  'Use lint to validate your code: %s'
-                                % (str(exc.problem_mark), str(exc.problem), str(exc.context), __YAMLlint__))
+                                 % (str(exc.problem_mark), str(exc.problem), str(exc.context), __YAMLlint__))
                     self.handleErrors(errorText, errorArgs)
                     return
                 else:
@@ -402,7 +412,7 @@ class MainGUI(QtWidgets.QMainWindow):
         infomsg = 'Create Jinja2 Environment...'
         report += '%s\n' % infomsg
         logging.info(infomsg)
-        env = jinja2.Environment(loader = jinja2.FileSystemLoader(str(tp_path)), trim_blocks=True, lstrip_blocks=True)
+        env = jinja2.Environment(loader=jinja2.FileSystemLoader(str(tp_path)), trim_blocks=True, lstrip_blocks=True)
         env.filters['ip'] = self.j2filter_ip
         env.filters['ipadd'] = self.j2filter_ipadd
         env.filters['network'] = self.j2filter_network
@@ -438,8 +448,8 @@ class MainGUI(QtWidgets.QMainWindow):
         try:
             for entry in input_db:
                 result = input_tp.render(entry)
-                out_file_name=next(iter(entry.values())) + fileExt
-                out_file = open(os.path.join(out_path,out_file_name), 'w')
+                out_file_name = next(iter(entry.values())) + fileExt
+                out_file = open(os.path.join(out_path, out_file_name), 'w')
                 out_file.write(result)
                 out_file.close()
                 infomsg = "Configuration '%s' created..." % (out_file_name)
@@ -472,6 +482,7 @@ class MainGUI(QtWidgets.QMainWindow):
         if result == QtWidgets.QMessageBox.StandardButton.Open:
             self.openFile(str(out_path))
 
+
 def setValidFile(fileType, fileName, textField):
     # Set error message for invalid file
     errorMsg = '< Not a valid %s file >' % fileType
@@ -492,7 +503,7 @@ def setValidFile(fileType, fileName, textField):
             env = jinja2.Environment()
             with open(fileName) as template:
                 env.parse(template.read())
-            
+
             # YAML files can also be loaded as Jinja template without errors
             # try to understand if the file extension is of a YAML file
             root, ext = os.path.splitext(fileName)
@@ -502,19 +513,20 @@ def setValidFile(fileType, fileName, textField):
                 textField.setText(fileName)
         except:
             textField.setText(errorMsg)
-        
 
-def bind(func, to): # This is needed to select all text when click on LineEdit
+
+def bind(func, to):  # This is needed to select all text when click on LineEdit
     'Bind function to instance, unbind if needed'
     return types.MethodType(func.__func__ if hasattr(func, '__self__') else func, to)
+
 
 def main():
     logging.basicConfig(
         level=logging.DEBUG,
         format='%(asctime)-15s %(levelname)-8s %(message)s',
         handlers=[
-        logging.FileHandler(__logfile__.format(), mode='w'),
-        logging.StreamHandler()
+            logging.FileHandler(__logfile__.format(), mode='w'),
+            logging.StreamHandler()
         ])
     logging.info('Session Started')
     app = QtWidgets.QApplication(sys.argv)
@@ -522,6 +534,7 @@ def main():
     status = app.exec()
     logging.info('Session Finished')
     sys.exit(status)
+
 
 if __name__ == '__main__':
     main()
