@@ -11,7 +11,7 @@ It's mandatory that the YAML file start with a list.
 Mainly though for Network Elements, the render is done by creating a file for each dictionary in the list.
 The filename is the value of the first dictionary found in the list.
 
-### Source code info:
+# Source code info:
 This code follow PEP 8 style guide and it use 4 spaces for indentation.
 """
 
@@ -37,7 +37,7 @@ __author__ = 'Emanuele Rossi'
 __credits__ = ['cyb3rw0lf']
 __appName__ = 'N.E.Py.H. - Network Engineer Python Helper'
 __license__ = 'MIT'
-__version__ = 'v1.0.3-beta'
+__version__ = 'v1.0.4-beta'
 __status__ = 'Production'
 __maintainer__ = 'cyb3rw0lf'
 __homepage__ = 'https://github.com/cyb3rw0lf/nepyh'
@@ -45,7 +45,7 @@ __email__ = 'w0lf.code@pm.me'
 __issues__ = 'https://github.com/cyb3rw0lf/nepyh/issues'
 __usage__ = ('Chose a Database file in YAML format and a Template file in Jinja2 format.\n'
              "It's mandatory that YAML file start with a list.")
-__logfile__ = Path(__file__).stem + '.log'
+__logfile__ = f'{Path(__file__).stem}.log'
 __YAMLlint__ = 'http://www.yamllint.com/'
 
 script_path = Path(__file__).resolve().parent
@@ -99,7 +99,7 @@ class MainGUI(QtWidgets.QMainWindow):
         super(MainGUI, self).__init__()
 
         # Create empty text box
-        #textEdit = QtWidgets.QTextEdit()
+        # textEdit = QtWidgets.QTextEdit()
         # self.setCentralWidget(textEdit)
 
         # Menubar Quit action:
@@ -152,9 +152,9 @@ class MainGUI(QtWidgets.QMainWindow):
         helpMenu.addAction(aboutAction)
 
         # Create a toolbar
-        #toolbar = self.addToolBar('CFG Gen')
+        # toolbar = self.addToolBar('CFG Gen')
         # toolbar.addAction(changeLayoutCFG)
-        #toolbar = self.addToolBar('Shut / No Shut')
+        # toolbar = self.addToolBar('Shut / No Shut')
 
         # Create a central Widgets
         centralWidget = QtWidgets.QWidget()
@@ -245,11 +245,11 @@ class MainGUI(QtWidgets.QMainWindow):
         aboutMsg = QtWidgets.QMessageBox()
         aboutMsg.setContentsMargins(10, 0, 40, 0)
         aboutMsg.setWindowTitle('About')
-        aboutMsg.setText('\n   %s\n\n'
-                         '        Author: %s\n'
-                         '        Version: %s\n'
-                         '        License:  %s\n\n'
-                         '        %s' % (__appName__, __author__, __version__, __license__, __homepage__)
+        aboutMsg.setText(f'\n   {__appName__}\n\n'
+                         f'        Author: {__author__}\n'
+                         f'        Version: {__version__}\n'
+                         f'        License:  {__license__}\n\n'
+                         f'        {__homepage__}'
                          )
         aboutMsg.setStandardButtons(QtWidgets.QMessageBox.StandardButton.Ok)
         aboutMsg.exec()
@@ -280,19 +280,19 @@ class MainGUI(QtWidgets.QMainWindow):
         @param excValue exception value
         @param tracebackobj traceback object
         """
-        infoVersion = 'Version: %s \n' % __version__
+        infoVersion = f'Version: {__version__} \n'
         separator = '-' * 80
-        notice = ('An unhandled exception occurred.\n' +
-                  'Please report the problem via email to <%s>\n'
-                  'A log has been written to %s\n\n'
-                  'Expand for more details:') % (__email__, __logfile__)
+        notice = ('An unhandled exception occurred.\n'
+                  f'Please report the problem via email to <{__email__}>\n'
+                  f'A log has been written to {__logfile__}\n\n'
+                  'Expand for more details:')
         timeString = time.strftime("%Y-%m-%d, %H:%M:%S")
 
         tbinfofile = io.StringIO()
         traceback.print_tb(tracebackobj, None, tbinfofile)
         tbinfofile.seek(0)
         tbinfo = tbinfofile.read()
-        errmsg = '%s: \n%s' % (str(excType), str(excValue))
+        errmsg = f'{str(excType)}: \n{str(excValue)}'
         sections = [separator, timeString, separator, errmsg, separator, tbinfo]
         msg = '\n'.join(sections)
         logging.error(infoVersion + msg)
@@ -383,7 +383,7 @@ class MainGUI(QtWidgets.QMainWindow):
 
         # Load data from YAML into Python dictionary
         infomsg = 'Load YAML database...'
-        report += '%s\n' % infomsg
+        report += f'{infomsg}\n'
         logging.info(infomsg)
         try:
             input_db = yaml.load(open(db_path), Loader=yaml.SafeLoader)
@@ -393,24 +393,22 @@ class MainGUI(QtWidgets.QMainWindow):
             if hasattr(exc, 'problem_mark'):
                 if exc.context != None:
                     errorArgs = ('Parser says:\n'
-                                 '%s\n'
-                                 '%s %s\n\n'
-                                 'Use lint to validate your code: %s'
-                                 % (str(exc.problem_mark), str(exc.problem), str(exc.context), __YAMLlint__))
+                                 f'{str(exc.problem_mark)}\n'
+                                 f'{str(exc.problem)} {str(exc.context)}\n\n'
+                                 f'Use lint to validate your code: {__YAMLlint__}')
                     self.handleErrors(errorText, errorArgs)
                     return
                 else:
                     errorArgs = ('Parser says:\n'
-                                 '%s\n'
-                                 '%s\n\n'
-                                 'Use lint to validate your code: %s'
-                                 % (str(exc.problem_mark), str(exc.problem), __YAMLlint__))
+                                 f'{str(exc.problem_mark)}\n'
+                                 f'{str(exc.problem)}\n\n'
+                                 f'Use lint to validate your code: {__YAMLlint__}')
                     self.handleErrors(errorText, errorArgs)
                     return
 
         # Load Jinja2 template
         infomsg = 'Create Jinja2 Environment...'
-        report += '%s\n' % infomsg
+        report += f'{infomsg}\n'
         logging.info(infomsg)
         env = jinja2.Environment(loader=jinja2.FileSystemLoader(str(tp_path)), trim_blocks=True, lstrip_blocks=True)
         env.filters['ip'] = self.j2filter_ip
@@ -422,28 +420,27 @@ class MainGUI(QtWidgets.QMainWindow):
         env.filters['wildmask'] = self.j2filter_wildmask
 
         infomsg = 'Load Jinja2 Template...'
-        report += '%s\n' % infomsg
+        report += f'{infomsg}\n'
         logging.info(infomsg)
         try:
             input_tp = env.get_template(tp_name)
         except jinja2.TemplateNotFound:
-            errorText = '%s: File not found\n' % tp_name
-            errorArgs = "File '%s' not found in %s\n" % (tp_name, str(tp_path))
+            errorText = f'{tp_name}: File not found\n'
+            errorArgs = f"File '{tp_name}' not found in {str(tp_path)}\n"
             self.handleErrors(errorText, errorArgs)
             return
         except jinja2.TemplateSyntaxError as exc:
             errorText = ('An error occurred while reading Jinja2 template\n\n'
                          'Please correct data and retry.\n')
             errorArgs = ('Syntax check failed:\n'
-                         ' %s '
-                         'in %s at line %d'
-                         % (exc.message, exc.filename, exc.lineno))
+                         f' {exc.message} '
+                         f'in {exc.filename} at line {exc.lineno}')
             self.handleErrors(errorText, errorArgs)
             return
 
         # Render the template with data and print the output
         infomsg = 'Rendering templates...'
-        report += '%s\n' % infomsg
+        report += f'{infomsg}\n'
         logging.info(infomsg)
         try:
             for entry in input_db:
@@ -452,8 +449,8 @@ class MainGUI(QtWidgets.QMainWindow):
                 out_file = open(os.path.join(out_path, out_file_name), 'w')
                 out_file.write(result)
                 out_file.close()
-                infomsg = "Configuration '%s' created..." % (out_file_name)
-                report += '%s\n' % infomsg
+                infomsg = f"Configuration '{out_file_name}' created..."
+                report += f'{infomsg}\n'
                 logging.info(infomsg)
         except ValueError as exc:
             errorText = ('An error occurred while rendering the templates\n'
@@ -473,9 +470,9 @@ class MainGUI(QtWidgets.QMainWindow):
         end_msg = QtWidgets.QMessageBox()
         end_msg.setIcon(QtWidgets.QMessageBox.Icon.Information)
         end_msg.setWindowTitle('Task Finished')
-        end_msg.setText("\nProject '%s' completed!\n\n"
+        end_msg.setText(f"\nProject '{self.projectEdit.text()}' completed!\n\n"
                         'The files have been generated in the folder: \n'
-                        "  '%s'\n" % (self.projectEdit.text(), str(out_path)))
+                        f"  '{str(out_path)}'\n")
         end_msg.setDetailedText(report)
         end_msg.setStandardButtons(QtWidgets.QMessageBox.StandardButton.Ok | QtWidgets.QMessageBox.StandardButton.Open)
         result = end_msg.exec()
@@ -485,7 +482,7 @@ class MainGUI(QtWidgets.QMainWindow):
 
 def setValidFile(fileType, fileName, textField):
     # Set error message for invalid file
-    errorMsg = '< Not a valid %s file >' % fileType
+    errorMsg = f'< Not a valid {fileType} file >'
 
     # Validate YAML file
     if fileType == 'YAML':
