@@ -15,7 +15,7 @@ The filename is the value of the first dictionary found in the list.
 This code follow PEP 8 style guide and it use 4 spaces for indentation.
 """
 
-from PyQt6 import QtCore, QtWidgets, QtGui  # import PyQt5 for GUI, to install 'pip3 install PyQt5'
+from PyQt6 import QtCore, QtWidgets, QtGui  # import PyQt6 for GUI
 from pathlib import Path
 from netaddr import IPNetwork  # used for custom Jinja2 templates
 import os  # import OS module to create directory
